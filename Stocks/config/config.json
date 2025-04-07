@@ -1,0 +1,10 @@
+{
+    "atr_trail_sl": {
+        "atr_length": 14,
+        "atr_multiplier": 2
+    },
+    "dc": {
+        "dc_length": 20,
+        "dc_source": "length"
+    }
+} 
