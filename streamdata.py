@@ -217,7 +217,7 @@ class IBapi(EWrapper, EClient):
             time.sleep(5)  # Wait before reconnecting
             
             try:
-                self.connect('127.0.0.1', 4001, 123)
+                self.connect('127.0.0.1', 7496, 123)
                 self.reqPositions()  # Test the connection
                 self.reconnect_count = 0  # Reset counter on successful reconnection
                 logging.info("✅ Successfully reconnected to IBKR")
@@ -249,7 +249,7 @@ class IBapi(EWrapper, EClient):
 def run_ibkr():
     """Start IBKR API loop in a separate thread."""
     app_ibkr = IBapi()
-    app_ibkr.connect('127.0.0.1', 4001, 123)
+    app_ibkr.connect('127.0.0.1', 7496, 123)
     api_thread = threading.Thread(target=app_ibkr.run, daemon=True)
     api_thread.start()
     time.sleep(1)  # Allow time for connection
