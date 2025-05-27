@@ -18,6 +18,7 @@ def setup_database():
         cur.execute("DROP TABLE IF EXISTS tbl_ohlc_fifteen_output CASCADE;")
         cur.execute("DROP TABLE IF EXISTS tbl_market_logtime CASCADE;")
         cur.execute("DROP TABLE IF EXISTS ibkr_contracts CASCADE;")
+        cur.execute("DROP TABLE IF EXISTS futures_contract_rolls CASCADE;")
 
         print("✅ Creating tick data table...")
         cur.execute("""
@@ -54,7 +55,6 @@ def setup_database():
                 compress_after => INTERVAL '7 days');
         """)
         
-        print("✅ Setting up retention policy for stock_ticks...")
         cur.execute("""
             SELECT add_retention_policy('stock_ticks', 
                 drop_after => INTERVAL '90 days');
@@ -214,6 +214,29 @@ def setup_database():
         
         cur.execute("CREATE INDEX idx_contracts_symbol ON ibkr_contracts (symbol);")
         cur.execute("CREATE INDEX idx_contracts_active ON ibkr_contracts (is_active) WHERE is_active = true;")
+
+        print("✅ Creating futures contract roll table...")
+        cur.execute("""
+            CREATE TABLE futures_contract_rolls (
+                id SERIAL PRIMARY KEY,
+                base_symbol TEXT NOT NULL,
+                front_month_conid INT NOT NULL,
+                back_month_conid INT NOT NULL,
+                roll_date DATE NOT NULL,
+                roll_type TEXT NOT NULL,  -- 'EXPIRY', 'VOLUME', 'MANUAL'
+                roll_offset INTEGER NOT NULL,  -- Days before expiry to roll
+                is_active BOOLEAN DEFAULT true,
+                created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (front_month_conid) REFERENCES ibkr_contracts(conid),
+                FOREIGN KEY (back_month_conid) REFERENCES ibkr_contracts(conid),
+                UNIQUE (base_symbol, front_month_conid, back_month_conid, roll_date)
+            );
+        """)
+        
+        cur.execute("CREATE INDEX idx_futures_rolls_symbol ON futures_contract_rolls (base_symbol);")
+        cur.execute("CREATE INDEX idx_futures_rolls_date ON futures_contract_rolls (roll_date);")
+        cur.execute("CREATE INDEX idx_futures_rolls_active ON futures_contract_rolls (is_active) WHERE is_active = true;")
 
         print("✅ Creating continuous aggregates for OHLC data...")
 

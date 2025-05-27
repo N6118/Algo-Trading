@@ -2,6 +2,8 @@ import psycopg2
 import threading
 import time
 import logging
+import sys
+import os
 from psycopg2.pool import SimpleConnectionPool
 from flask import Flask, jsonify
 from datetime import datetime
@@ -9,8 +11,14 @@ from ibapi.client import EClient
 from ibapi.wrapper import EWrapper
 from ibapi.contract import Contract
 from urllib.parse import quote_plus
-from .polygon_feed import start_polygon_feed, stop_polygon_feed, add_symbol_to_polygon, remove_symbol_from_polygon
-from .monitoring import start_monitoring, stop_monitoring, record_latency
+
+# Add the project root to the Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
+# Now import the FuturesRollManager
+from backend.app.data.futures_roll import FuturesRollManager
 
 # TWS Connection Configuration
 TWS_HOST = '127.0.0.1'  # Change this to your TWS server IP
@@ -24,6 +32,9 @@ pool = SimpleConnectionPool(1, 5, DB_URI)  # Connection pool (min=1, max=5)
 
 app = Flask(__name__)
 
+# Initialize futures roll manager
+futures_roll_manager = FuturesRollManager()
+
 # Configure Logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
@@ -32,12 +43,8 @@ class IBapi(EWrapper, EClient):
         EClient.__init__(self, self)
         self.contract_details = {}  # symbol -> conId mapping
         self.reqId_map = {}  # reqId -> (symbol, conId) mapping
-        self.last_heartbeat = datetime.utcnow()
-        self.reconnect_count = 0
-        self.MAX_RECONNECTS = 5
         self.connected = False
         self.connection_timeout = 10  # seconds to wait for connection
-        self.use_polygon_fallback = False
 
     def connectAck(self):
         """Called when connection is acknowledged by TWS."""
@@ -88,9 +95,6 @@ class IBapi(EWrapper, EClient):
                     conId = contractDetails.contract.conId
                     self.contract_details[symbol] = conId
                     self.reqId_map[reqId] = (symbol, conId)
-                    
-                    # Add symbol to Polygon feed as backup
-                    add_symbol_to_polygon(symbol)
                     
                     logging.info(f"✅ Stored contract details for {symbol} (conId: {conId})")
                 except Exception as e:
@@ -166,12 +170,6 @@ class IBapi(EWrapper, EClient):
         except Exception as e:
             return False, f"Validation error: {str(e)}"
 
-    def _check_heartbeat(self):
-        """Check if we're still receiving data."""
-        if (datetime.utcnow() - self.last_heartbeat).seconds > 30:  # No data for 30 seconds
-            logging.warning("❌ No data received for 30 seconds, attempting reconnection...")
-            self.handle_connection_error()
-        
     def tickPrice(self, reqId, tickType, price, attrib):
         """Process tick price data."""
         if tickType == 68:  # Last Price
@@ -184,11 +182,8 @@ class IBapi(EWrapper, EClient):
                 is_valid, error_msg = self._validate_tick_data(token, symbol, ts, price, -1)
                 if is_valid:
                     logging.info(f"📊 Tick Price: {ts}, Token: {token}, Symbol: {symbol}, Price: {price}")
-                    insert_tick(token, symbol, ts, price, -1)
-                    self.last_heartbeat = datetime.utcnow()  # Update heartbeat
-                    
-                    # Record latency
-                    record_latency(symbol, ts, datetime.utcnow())
+                    # Store price in a temporary cache
+                    self._cache_tick_data(token, symbol, ts, price=price)
                 else:
                     logging.error(f"❌ Invalid tick price data: {error_msg}")
             else:
@@ -207,10 +202,6 @@ class IBapi(EWrapper, EClient):
                 if is_valid:
                     logging.info(f"📊 Tick Volume: {ts}, Token: {token}, Symbol: {symbol}, Volume: {size}")
                     insert_tick(token, symbol, ts, None, size)
-                    self.last_heartbeat = datetime.utcnow()  # Update heartbeat
-                    
-                    # Record latency
-                    record_latency(symbol, ts, datetime.utcnow())
                 else:
                     logging.error(f"❌ Invalid tick volume data: {error_msg}")
             else:
@@ -230,75 +221,65 @@ class IBapi(EWrapper, EClient):
             if contract_info:
                 symbol, token = contract_info
                 logging.info(f"📊 Tick Volume (string): {ts}, Token: {token}, Symbol: {symbol}, Volume: {vol}")
-                insert_tick(token, symbol, ts, None, vol)
-                
-                # Record latency
-                record_latency(symbol, ts, datetime.utcnow())
+                # Store volume in a temporary cache
+                self._cache_tick_data(token, symbol, ts, volume=vol)
             else:
                 logging.warning(f"⚠️ No contract found for reqId: {reqId}")
 
     def error(self, reqId, errorCode, errorString):
         """Handle IBKR API errors."""
         logging.error(f"⚠️ API Error {errorCode}: {errorString}")
-        
-        # Handle connection-related errors
-        if errorCode in [1100, 1101, 1102]:  # Connection-related errors
-            self.handle_connection_error()
-        
-    def handle_connection_error(self):
-        """Handle connection errors with reconnection logic."""
-        if self.reconnect_count < self.MAX_RECONNECTS:
-            self.reconnect_count += 1
-            logging.warning(f"📡 Attempting reconnection {self.reconnect_count}/{self.MAX_RECONNECTS}")
-            
-            # Disconnect if still connected
-            if self.isConnected():
-                self.disconnect()
-            
-            time.sleep(5)  # Wait before reconnecting
-            
-            try:
-                self.connect(TWS_HOST, TWS_PORT, TWS_CLIENT_ID)
-                self.reqPositions()  # Test the connection
-                self.reconnect_count = 0  # Reset counter on successful reconnection
-                logging.info("✅ Successfully reconnected to IBKR")
-                
-                # Resubscribe to market data
-                self._resubscribe_market_data()
-            except Exception as e:
-                logging.error(f"❌ Reconnection failed: {e}")
-                # Switch to Polygon feed if IBKR connection fails
-                self.use_polygon_fallback = True
-        else:
-            logging.error("❌ Max reconnection attempts reached. Switching to Polygon feed.")
-            self.use_polygon_fallback = True
 
-    def _resubscribe_market_data(self):
-        """Resubscribe to market data for all active contracts."""
-        try:
-            # Clear existing mappings
-            self.reqId_map.clear()
+    def _cache_tick_data(self, token, symbol, ts, price=None, volume=None):
+        """Cache tick data and insert when both price and volume are available."""
+        cache_key = f"{token}_{ts.isoformat()}"
+        
+        # Initialize cache if not exists
+        if not hasattr(self, '_tick_cache'):
+            self._tick_cache = {}
             
-            # Get active contracts and resubscribe
-            contracts = self.get_active_contracts()
-            for i, contract in enumerate(contracts):
-                reqId = i + 1
-                self.reqId_map[reqId] = (contract.symbol, contract.conId)
-                self.reqMarketDataType(3)
-                self.reqMktData(reqId, contract, "233", False, False, [])
-                time.sleep(0.1)
-        except Exception as e:
-            logging.error(f"❌ Error resubscribing to market data: {e}")
+        # Get or create cache entry
+        if cache_key not in self._tick_cache:
+            self._tick_cache[cache_key] = {
+                'token': token,
+                'symbol': symbol,
+                'ts': ts,
+                'price': None,
+                'volume': None
+            }
+            
+        # Update cache with new data
+        if price is not None:
+            self._tick_cache[cache_key]['price'] = price
+        if volume is not None:
+            self._tick_cache[cache_key]['volume'] = volume
+            
+        # Check if we have both price and volume
+        cache_entry = self._tick_cache[cache_key]
+        if cache_entry['price'] is not None and cache_entry['volume'] is not None:
+            # Insert complete data
+            insert_tick(
+                cache_entry['token'],
+                cache_entry['symbol'],
+                cache_entry['ts'],
+                cache_entry['price'],
+                cache_entry['volume']
+            )
+            # Remove from cache
+            del self._tick_cache[cache_key]
+            
+        # Clean up old cache entries (older than 5 seconds)
+        current_time = datetime.utcnow()
+        for key in list(self._tick_cache.keys()):
+            if (current_time - self._tick_cache[key]['ts']).total_seconds() > 5:
+                del self._tick_cache[key]
 
 def run_ibkr():
     """Start IBKR API loop in a separate thread."""
     app_ibkr = IBapi()
     
-    # Start monitoring service
-    start_monitoring()
-    
-    # Start Polygon feed as backup
-    start_polygon_feed()
+    # Start futures roll manager
+    futures_roll_manager.start()
     
     # Attempt to connect to TWS
     try:
@@ -339,24 +320,19 @@ def run_ibkr():
 
         logging.info("📌 IBKR Market Data Collection Running...")
         while True:
-            if not app_ibkr.connected and app_ibkr.use_polygon_fallback:
-                logging.info("📡 Using Polygon.io feed as fallback")
-                time.sleep(1)
-                continue
-            elif not app_ibkr.connected:
+            if not app_ibkr.connected:
                 logging.error("❌ Lost connection to TWS")
                 break
-            app_ibkr._check_heartbeat()  # Check for data freshness
             time.sleep(1)
             
     except Exception as e:
         logging.error(f"❌ Failed to connect to TWS: {e}")
     finally:
+        # Stop futures roll manager
+        futures_roll_manager.stop()
         if app_ibkr.isConnected():
             logging.warning("❌ Stopping IBKR...")
             app_ibkr.disconnect()
-        stop_monitoring()
-        stop_polygon_feed()
 
 # Database Operations
 def insert_tick(token, symbol, ts, price, volume):
@@ -368,13 +344,31 @@ def insert_tick(token, symbol, ts, price, volume):
     try:
         conn = pool.getconn()
         with conn.cursor() as cur:
+            # First check if a row exists for this timestamp
             cur.execute("""
-                INSERT INTO stock_ticks (token, symbol, timestamp, price, volume) 
-                VALUES (%s, %s, %s, %s, %s)
-                ON CONFLICT (token, timestamp) DO UPDATE SET
-                    price = CASE WHEN EXCLUDED.price IS NOT NULL THEN EXCLUDED.price ELSE stock_ticks.price END,
-                    volume = CASE WHEN EXCLUDED.volume != -1 THEN EXCLUDED.volume ELSE stock_ticks.volume END;
-            """, (token, symbol, ts, price, volume))
+                SELECT price, volume FROM stock_ticks 
+                WHERE token = %s AND timestamp = %s
+            """, (token, ts))
+            existing = cur.fetchone()
+            
+            if existing:
+                # Update existing row, preserving non-null values
+                current_price, current_volume = existing
+                new_price = price if price is not None else current_price
+                new_volume = volume if volume != -1 else current_volume
+                
+                cur.execute("""
+                    UPDATE stock_ticks 
+                    SET price = %s, volume = %s
+                    WHERE token = %s AND timestamp = %s
+                """, (new_price, new_volume, token, ts))
+            else:
+                # Insert new row
+                cur.execute("""
+                    INSERT INTO stock_ticks (token, symbol, timestamp, price, volume) 
+                    VALUES (%s, %s, %s, %s, %s)
+                """, (token, symbol, ts, price, volume))
+            
             conn.commit()
         pool.putconn(conn)
         logging.info(f"✅ Inserted/Updated Tick - Token: {token}, Symbol: {symbol}, ts: {ts}, Price: {price}, Volume: {volume}")
