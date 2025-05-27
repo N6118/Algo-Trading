@@ -1,0 +1,24 @@
+2025-04-08 02:04:18,549 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5001
+ * Running on http://192.168.116.132:5001
+2025-04-08 02:04:18,550 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-04-08 02:04:23,131 - __main__ - INFO - Processing token 265598 (index 0/3) in UpdateProcess
+2025-04-08 02:04:23,163 - __main__ - WARNING - Donchian channel calculation returned None
+2025-04-08 02:04:23,180 - __main__ - INFO - Skipping CSV header row
+2025-04-08 02:04:23,182 - __main__ - INFO - CSV processing summary: 7 valid rows processed, 0 rows skipped
+2025-04-08 02:04:23,182 - __main__ - DEBUG - Executing SQL with parameters for token: 265598, n: 0
+2025-04-08 02:04:23,184 - __main__ - DEBUG - Successfully inserted/updated row for token: 265598, n: 0
+2025-04-08 02:04:23,185 - __main__ - DEBUG - Executing SQL with parameters for token: 265598, n: 1
+2025-04-08 02:04:23,186 - __main__ - DEBUG - Successfully inserted/updated row for token: 265598, n: 1
+2025-04-08 02:04:23,186 - __main__ - DEBUG - Executing SQL with parameters for token: 265598, n: 2
+2025-04-08 02:04:23,187 - __main__ - DEBUG - Successfully inserted/updated row for token: 265598, n: 2
+2025-04-08 02:04:23,187 - __main__ - DEBUG - Executing SQL with parameters for token: 265598, n: 3
+2025-04-08 02:04:23,188 - __main__ - DEBUG - Successfully inserted/updated row for token: 265598, n: 3
+2025-04-08 02:04:23,188 - __main__ - DEBUG - Executing SQL with parameters for token: 265598, n: 4
+2025-04-08 02:04:23,189 - __main__ - DEBUG - Successfully inserted/updated row for token: 265598, n: 4
+2025-04-08 02:04:23,189 - __main__ - DEBUG - Executing SQL with parameters for token: 265598, n: 5
+2025-04-08 02:04:23,189 - __main__ - DEBUG - Successfully inserted/updated row for token: 265598, n: 5
+2025-04-08 02:04:23,190 - __main__ - DEBUG - Executing SQL with parameters for token: 265598, n: 6
+2025-04-08 02:04:23,190 - __main__ - DEBUG - Successfully inserted/updated row for token: 265598, n: 6
+2025-04-08 02:04:23,191 - werkzeug - INFO - 127.0.0.1 - - [08/Apr/2025 02:04:23] "GET /update HTTP/1.1" 200 -

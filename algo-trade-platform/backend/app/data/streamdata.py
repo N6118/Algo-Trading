@@ -8,17 +8,24 @@ from datetime import datetime
 from ibapi.client import EClient
 from ibapi.wrapper import EWrapper
 from ibapi.contract import Contract
+from urllib.parse import quote_plus
+from .polygon_feed import start_polygon_feed, stop_polygon_feed, add_symbol_to_polygon, remove_symbol_from_polygon
+from .monitoring import start_monitoring, stop_monitoring, record_latency
 
-# ✅ Database Configuration
-DB_URI = "postgresql://postgres:password@localhost:5432/theostock"
-pool = SimpleConnectionPool(1, 5, DB_URI)  # ✅ Connection pool (min=1, max=5)
+# TWS Connection Configuration
+TWS_HOST = '127.0.0.1'  # Change this to your TWS server IP
+TWS_PORT = 7496  # Default TWS port (7496 for live, 7497 for paper trading)
+TWS_CLIENT_ID = 123  # Unique client ID for this connection
+
+# Remote database configuration
+password = quote_plus("password")
+DB_URI = f"postgresql://postgres:{password}@139.59.38.207:5432/theostock"
+pool = SimpleConnectionPool(1, 5, DB_URI)  # Connection pool (min=1, max=5)
 
 app = Flask(__name__)
 
-# ✅ Configure Logging
+# Configure Logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
-
-# ====================== IBKR CLIENT SETUP ======================
 
 class IBapi(EWrapper, EClient):
     def __init__(self):
@@ -28,6 +35,28 @@ class IBapi(EWrapper, EClient):
         self.last_heartbeat = datetime.utcnow()
         self.reconnect_count = 0
         self.MAX_RECONNECTS = 5
+        self.connected = False
+        self.connection_timeout = 10  # seconds to wait for connection
+        self.use_polygon_fallback = False
+
+    def connectAck(self):
+        """Called when connection is acknowledged by TWS."""
+        self.connected = True
+        logging.info("✅ TWS Connection Acknowledged")
+        super().connectAck()
+
+    def connectionClosed(self):
+        """Called when connection is closed."""
+        self.connected = False
+        logging.warning("❌ TWS Connection Closed")
+        super().connectionClosed()
+
+    def wait_for_connection(self):
+        """Wait for connection to be established."""
+        start_time = time.time()
+        while not self.connected and (time.time() - start_time) < self.connection_timeout:
+            time.sleep(0.1)
+        return self.connected
 
     def contractDetails(self, reqId, contractDetails):
         """Receive contract details from IBKR and store in database."""
@@ -59,6 +88,9 @@ class IBapi(EWrapper, EClient):
                     conId = contractDetails.contract.conId
                     self.contract_details[symbol] = conId
                     self.reqId_map[reqId] = (symbol, conId)
+                    
+                    # Add symbol to Polygon feed as backup
+                    add_symbol_to_polygon(symbol)
                     
                     logging.info(f"✅ Stored contract details for {symbol} (conId: {conId})")
                 except Exception as e:
@@ -154,6 +186,9 @@ class IBapi(EWrapper, EClient):
                     logging.info(f"📊 Tick Price: {ts}, Token: {token}, Symbol: {symbol}, Price: {price}")
                     insert_tick(token, symbol, ts, price, -1)
                     self.last_heartbeat = datetime.utcnow()  # Update heartbeat
+                    
+                    # Record latency
+                    record_latency(symbol, ts, datetime.utcnow())
                 else:
                     logging.error(f"❌ Invalid tick price data: {error_msg}")
             else:
@@ -173,6 +208,9 @@ class IBapi(EWrapper, EClient):
                     logging.info(f"📊 Tick Volume: {ts}, Token: {token}, Symbol: {symbol}, Volume: {size}")
                     insert_tick(token, symbol, ts, None, size)
                     self.last_heartbeat = datetime.utcnow()  # Update heartbeat
+                    
+                    # Record latency
+                    record_latency(symbol, ts, datetime.utcnow())
                 else:
                     logging.error(f"❌ Invalid tick volume data: {error_msg}")
             else:
@@ -193,6 +231,9 @@ class IBapi(EWrapper, EClient):
                 symbol, token = contract_info
                 logging.info(f"📊 Tick Volume (string): {ts}, Token: {token}, Symbol: {symbol}, Volume: {vol}")
                 insert_tick(token, symbol, ts, None, vol)
+                
+                # Record latency
+                record_latency(symbol, ts, datetime.utcnow())
             else:
                 logging.warning(f"⚠️ No contract found for reqId: {reqId}")
 
@@ -217,7 +258,7 @@ class IBapi(EWrapper, EClient):
             time.sleep(5)  # Wait before reconnecting
             
             try:
-                self.connect('127.0.0.1', 4001, 123)
+                self.connect(TWS_HOST, TWS_PORT, TWS_CLIENT_ID)
                 self.reqPositions()  # Test the connection
                 self.reconnect_count = 0  # Reset counter on successful reconnection
                 logging.info("✅ Successfully reconnected to IBKR")
@@ -226,8 +267,11 @@ class IBapi(EWrapper, EClient):
                 self._resubscribe_market_data()
             except Exception as e:
                 logging.error(f"❌ Reconnection failed: {e}")
+                # Switch to Polygon feed if IBKR connection fails
+                self.use_polygon_fallback = True
         else:
-            logging.error("❌ Max reconnection attempts reached. Manual intervention required.")
+            logging.error("❌ Max reconnection attempts reached. Switching to Polygon feed.")
+            self.use_polygon_fallback = True
 
     def _resubscribe_market_data(self):
         """Resubscribe to market data for all active contracts."""
@@ -249,46 +293,72 @@ class IBapi(EWrapper, EClient):
 def run_ibkr():
     """Start IBKR API loop in a separate thread."""
     app_ibkr = IBapi()
-    app_ibkr.connect('127.0.0.1', 4001, 123)
-    api_thread = threading.Thread(target=app_ibkr.run, daemon=True)
-    api_thread.start()
-    time.sleep(1)  # Allow time for connection
-
-    # Get active contracts from database
-    contracts = app_ibkr.get_active_contracts()
     
-    # If no contracts in database, add VIX as default
-    if not contracts:
-        print("No contracts in database, adding VIX as default")
-        vix_contract = Contract()
-        vix_contract.symbol = 'VIX'
-        vix_contract.secType = 'IND'
-        vix_contract.exchange = 'CBOE'
-        vix_contract.currency = 'USD'
-        contracts = [vix_contract]
-
-    # Request contract details and market data for each contract
-    for i, contract in enumerate(contracts):
-        # Request contract details to get/update conId
-        app_ibkr.reqContractDetails(i+1, contract)
-        time.sleep(0.1)  # Small delay between requests
-        
-        # Request market data
-        app_ibkr.reqMarketDataType(3)  # 3 = Delayed Data
-        app_ibkr.reqMktData(i+1, contract, "233", False, False, [])
-        time.sleep(0.1)  # Small delay between requests
-
-    logging.info("📌 IBKR Market Data Collection Running...")
+    # Start monitoring service
+    start_monitoring()
+    
+    # Start Polygon feed as backup
+    start_polygon_feed()
+    
+    # Attempt to connect to TWS
     try:
+        logging.info(f"📡 Connecting to TWS at {TWS_HOST}:{TWS_PORT}...")
+        app_ibkr.connect(TWS_HOST, TWS_PORT, TWS_CLIENT_ID)
+        
+        # Wait for connection to be established
+        if not app_ibkr.wait_for_connection():
+            raise Exception("Failed to connect to TWS within timeout period")
+            
+        api_thread = threading.Thread(target=app_ibkr.run, daemon=True)
+        api_thread.start()
+        time.sleep(1)  # Allow time for connection
+
+        # Get active contracts from database
+        contracts = app_ibkr.get_active_contracts()
+        
+        # If no contracts in database, add VIX as default
+        if not contracts:
+            logging.info("No contracts in database, adding VIX as default")
+            vix_contract = Contract()
+            vix_contract.symbol = 'VIX'
+            vix_contract.secType = 'IND'
+            vix_contract.exchange = 'CBOE'
+            vix_contract.currency = 'USD'
+            contracts = [vix_contract]
+
+        # Request contract details and market data for each contract
+        for i, contract in enumerate(contracts):
+            # Request contract details to get/update conId
+            app_ibkr.reqContractDetails(i+1, contract)
+            time.sleep(0.1)  # Small delay between requests
+            
+            # Request market data
+            app_ibkr.reqMarketDataType(3)  # 3 = Delayed Data
+            app_ibkr.reqMktData(i+1, contract, "233", False, False, [])
+            time.sleep(0.1)  # Small delay between requests
+
+        logging.info("📌 IBKR Market Data Collection Running...")
         while True:
+            if not app_ibkr.connected and app_ibkr.use_polygon_fallback:
+                logging.info("📡 Using Polygon.io feed as fallback")
+                time.sleep(1)
+                continue
+            elif not app_ibkr.connected:
+                logging.error("❌ Lost connection to TWS")
+                break
             app_ibkr._check_heartbeat()  # Check for data freshness
             time.sleep(1)
-    except KeyboardInterrupt:
-        logging.warning("❌ Stopping IBKR...")
-        app_ibkr.disconnect()
+            
+    except Exception as e:
+        logging.error(f"❌ Failed to connect to TWS: {e}")
+    finally:
+        if app_ibkr.isConnected():
+            logging.warning("❌ Stopping IBKR...")
+            app_ibkr.disconnect()
+        stop_monitoring()
+        stop_polygon_feed()
 
-# ====================== DATABASE OPERATIONS ======================
-
+# Database Operations
 def insert_tick(token, symbol, ts, price, volume):
     """
     Insert or update a tick in the database.
