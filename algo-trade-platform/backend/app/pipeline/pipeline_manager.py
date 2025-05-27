@@ -5,7 +5,8 @@ import logging
 import threading
 import schedule
 import requests
-from datetime import datetime
+import pytz
+from datetime import datetime, time as dt_time
 from pathlib import Path
 
 # Add the project root to the Python path
@@ -57,6 +58,22 @@ class PipelineManager:
             }
         })
         
+        # Market hours settings (Eastern Time - US Market)
+        self.market_hours = self.config.get('market_hours', {
+            'enabled': True,  # Whether to respect market hours
+            'timezone': 'US/Eastern',
+            'regular_hours': {
+                'open': '09:30',  # Regular market open (9:30 AM ET)
+                'close': '16:00'  # Regular market close (4:00 PM ET)
+            },
+            'extended_hours': {
+                'enabled': False,  # Whether to run during extended hours
+                'pre_market_open': '04:00',  # Pre-market open (4:00 AM ET)
+                'post_market_close': '20:00'  # Post-market close (8:00 PM ET)
+            },
+            'trading_days': ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
+        })
+        
         logger.info("Pipeline Manager initialized")
     
     def start_data_collection(self):
@@ -78,8 +95,57 @@ class PipelineManager:
         # The pipeline will make HTTP requests to it
         logger.info("Will connect to strategy Flask server at http://localhost:5001")
     
+    def is_market_open(self):
+        """Check if the market is currently open based on configuration."""
+        # If market hours check is disabled, always return True
+        if not self.market_hours.get('enabled', True):
+            return True
+            
+        # Get current time in market timezone
+        market_tz = pytz.timezone(self.market_hours.get('timezone', 'US/Eastern'))
+        now = datetime.now(market_tz)
+        current_day = now.strftime('%A')
+        
+        # Check if today is a trading day
+        trading_days = self.market_hours.get('trading_days', 
+                                           ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'])
+        if current_day not in trading_days:
+            logger.info(f"Market is closed: Today is {current_day}, not a trading day")
+            return False
+            
+        # Parse market hours
+        regular_hours = self.market_hours.get('regular_hours', {})
+        extended_hours = self.market_hours.get('extended_hours', {})
+        
+        # Convert string times to datetime.time objects
+        def parse_time(time_str):
+            hours, minutes = map(int, time_str.split(':'))
+            return dt_time(hours, minutes)
+            
+        market_open = parse_time(regular_hours.get('open', '09:30'))
+        market_close = parse_time(regular_hours.get('close', '16:00'))
+        
+        # Check extended hours if enabled
+        if extended_hours.get('enabled', False):
+            market_open = parse_time(extended_hours.get('pre_market_open', '04:00'))
+            market_close = parse_time(extended_hours.get('post_market_close', '20:00'))
+            
+        # Check if current time is within market hours
+        current_time = now.time()
+        is_open = market_open <= current_time <= market_close
+        
+        if not is_open:
+            logger.info(f"Market is closed: Current time is {current_time}, outside market hours {market_open}-{market_close}")
+        
+        return is_open
+
     def run_init_process(self):
         """Run the initialization process by calling the Flask route."""
+        # Only run during market hours if configured
+        if not self.is_market_open():
+            logger.info("Skipping initialization process: Market is closed")
+            return None
+            
         logger.info("Running initialization process...")
         try:
             # Call the InitProcess Flask route via HTTP request
@@ -96,6 +162,11 @@ class PipelineManager:
     
     def run_update_process(self):
         """Run the update process by calling the Flask route."""
+        # Only run during market hours if configured
+        if not self.is_market_open():
+            logger.info("Skipping update process: Market is closed")
+            return None
+            
         logger.info("Running update process...")
         try:
             # Since there's no specific update route, we'll call the main route

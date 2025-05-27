@@ -10,6 +10,20 @@
             "interval_minutes": 15
         }
     },
+    "market_hours": {
+        "enabled": true,
+        "timezone": "US/Eastern",
+        "regular_hours": {
+            "open": "09:30",
+            "close": "16:00"
+        },
+        "extended_hours": {
+            "enabled": false,
+            "pre_market_open": "04:00",
+            "post_market_close": "20:00"
+        },
+        "trading_days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+    },
     "database": {
         "host": "139.59.38.207",
         "port": 5432,
