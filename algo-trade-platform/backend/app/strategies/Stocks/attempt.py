@@ -996,7 +996,7 @@ def InitProcess():
                     query = f"""
                         INSERT INTO {output_table} ({', '.join(columns)}) 
                         VALUES ({placeholders})
-                        ON CONFLICT (token, n) 
+                        ON CONFLICT ON CONSTRAINT {output_table}_created_token_n_key 
                         DO UPDATE SET 
                         {', '.join([f"{col} = EXCLUDED.{col}" for col in columns if col not in ['created', 'token', 'n']])}
                     """

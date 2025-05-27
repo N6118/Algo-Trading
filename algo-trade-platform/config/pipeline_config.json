@@ -1,0 +1,24 @@
+{
+    "schedule": {
+        "init_process": {
+            "run_on_start": true,
+            "interval_hours": 24,
+            "time": "00:00"
+        },
+        "update_process": {
+            "run_on_start": true,
+            "interval_minutes": 15
+        }
+    },
+    "database": {
+        "host": "139.59.38.207",
+        "port": 5432,
+        "user": "postgres",
+        "password": "password",
+        "database": "theostock"
+    },
+    "logging": {
+        "level": "INFO",
+        "file_retention_days": 7
+    }
+}

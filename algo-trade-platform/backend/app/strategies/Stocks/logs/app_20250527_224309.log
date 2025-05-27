@@ -1,0 +1,110 @@
+2025-05-27 22:43:09,978 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5001
+ * Running on http://192.168.162.132:5001
+2025-05-27 22:43:09,978 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-05-27 22:43:45,193 - __main__ - INFO - Found 1 tokens to process
+2025-05-27 22:43:45,230 - __main__ - INFO - Processing token 13455763 (index 0/1)
+2025-05-27 22:43:45,230 - __main__ - DEBUG - Processing token 13455763
+2025-05-27 22:43:45,584 - __main__ - DEBUG - Processing chunk 1 for token 13455763
+2025-05-27 22:43:45,591 - __main__ - WARNING - Donchian channel calculation returned None
+2025-05-27 22:43:46,497 - __main__ - INFO - Skipping CSV header row
+2025-05-27 22:43:46,508 - __main__ - INFO - CSV processing summary: 8 valid rows processed, 0 rows skipped
+2025-05-27 22:43:46,508 - __main__ - DEBUG - Executing SQL with parameters for token: 13455763, n: 0
+2025-05-27 22:43:46,737 - __main__ - DEBUG - Successfully inserted/updated row for token: 13455763, n: 0
+2025-05-27 22:43:46,851 - __main__ - DEBUG - Executing SQL with parameters for token: 13455763, n: 1
+2025-05-27 22:43:47,087 - __main__ - DEBUG - Successfully inserted/updated row for token: 13455763, n: 1
+2025-05-27 22:43:47,198 - __main__ - DEBUG - Executing SQL with parameters for token: 13455763, n: 2
+2025-05-27 22:43:47,408 - __main__ - DEBUG - Successfully inserted/updated row for token: 13455763, n: 2
+2025-05-27 22:43:47,511 - __main__ - DEBUG - Executing SQL with parameters for token: 13455763, n: 3
+2025-05-27 22:43:47,718 - __main__ - DEBUG - Successfully inserted/updated row for token: 13455763, n: 3
+2025-05-27 22:43:47,817 - __main__ - DEBUG - Executing SQL with parameters for token: 13455763, n: 4
+2025-05-27 22:43:48,023 - __main__ - DEBUG - Successfully inserted/updated row for token: 13455763, n: 4
+2025-05-27 22:43:48,127 - __main__ - DEBUG - Executing SQL with parameters for token: 13455763, n: 5
+2025-05-27 22:43:48,346 - __main__ - DEBUG - Successfully inserted/updated row for token: 13455763, n: 5
+2025-05-27 22:43:48,447 - __main__ - DEBUG - Executing SQL with parameters for token: 13455763, n: 6
+2025-05-27 22:43:48,666 - __main__ - DEBUG - Successfully inserted/updated row for token: 13455763, n: 6
+2025-05-27 22:43:48,768 - __main__ - DEBUG - Executing SQL with parameters for token: 13455763, n: 7
+2025-05-27 22:43:48,971 - __main__ - DEBUG - Successfully inserted/updated row for token: 13455763, n: 7
+2025-05-27 22:43:49,196 - werkzeug - INFO - 127.0.0.1 - - [27/May/2025 22:43:49] "GET / HTTP/1.1" 200 -
+2025-05-27 23:12:33,462 - __main__ - INFO - Processing token 265598 (index 0/3) in UpdateProcess
+2025-05-27 23:12:33,507 - __main__ - WARNING - Donchian channel calculation returned None
+2025-05-27 23:12:33,530 - __main__ - INFO - Skipping CSV header row
+2025-05-27 23:12:33,531 - __main__ - INFO - CSV processing summary: 7 valid rows processed, 0 rows skipped
+2025-05-27 23:12:33,531 - __main__ - DEBUG - Executing SQL with parameters for token: 265598, n: 0
+2025-05-27 23:12:33,536 - __main__ - DEBUG - Successfully inserted/updated row for token: 265598, n: 0
+2025-05-27 23:12:33,537 - __main__ - DEBUG - Executing SQL with parameters for token: 265598, n: 1
+2025-05-27 23:12:33,538 - __main__ - DEBUG - Successfully inserted/updated row for token: 265598, n: 1
+2025-05-27 23:12:33,538 - __main__ - DEBUG - Executing SQL with parameters for token: 265598, n: 2
+2025-05-27 23:12:33,540 - __main__ - DEBUG - Successfully inserted/updated row for token: 265598, n: 2
+2025-05-27 23:12:33,540 - __main__ - DEBUG - Executing SQL with parameters for token: 265598, n: 3
+2025-05-27 23:12:33,541 - __main__ - DEBUG - Successfully inserted/updated row for token: 265598, n: 3
+2025-05-27 23:12:33,542 - __main__ - DEBUG - Executing SQL with parameters for token: 265598, n: 4
+2025-05-27 23:12:33,543 - __main__ - DEBUG - Successfully inserted/updated row for token: 265598, n: 4
+2025-05-27 23:12:33,543 - __main__ - DEBUG - Executing SQL with parameters for token: 265598, n: 5
+2025-05-27 23:12:33,544 - __main__ - DEBUG - Successfully inserted/updated row for token: 265598, n: 5
+2025-05-27 23:12:33,544 - __main__ - DEBUG - Executing SQL with parameters for token: 265598, n: 6
+2025-05-27 23:12:33,545 - __main__ - DEBUG - Successfully inserted/updated row for token: 265598, n: 6
+2025-05-27 23:12:33,547 - __main__ - INFO - Processing token 756733 (index 1/3) in UpdateProcess
+2025-05-27 23:12:33,556 - __main__ - WARNING - Donchian channel calculation returned None
+2025-05-27 23:12:33,575 - __main__ - INFO - CSV processing summary: 7 valid rows processed, 0 rows skipped
+2025-05-27 23:12:33,575 - __main__ - DEBUG - Executing SQL with parameters for token: 756733, n: 0
+2025-05-27 23:12:33,577 - __main__ - DEBUG - Successfully inserted/updated row for token: 756733, n: 0
+2025-05-27 23:12:33,577 - __main__ - DEBUG - Executing SQL with parameters for token: 756733, n: 1
+2025-05-27 23:12:33,578 - __main__ - DEBUG - Successfully inserted/updated row for token: 756733, n: 1
+2025-05-27 23:12:33,578 - __main__ - DEBUG - Executing SQL with parameters for token: 756733, n: 2
+2025-05-27 23:12:33,579 - __main__ - DEBUG - Successfully inserted/updated row for token: 756733, n: 2
+2025-05-27 23:12:33,579 - __main__ - DEBUG - Executing SQL with parameters for token: 756733, n: 3
+2025-05-27 23:12:33,580 - __main__ - DEBUG - Successfully inserted/updated row for token: 756733, n: 3
+2025-05-27 23:12:33,581 - __main__ - DEBUG - Executing SQL with parameters for token: 756733, n: 4
+2025-05-27 23:12:33,581 - __main__ - DEBUG - Successfully inserted/updated row for token: 756733, n: 4
+2025-05-27 23:12:33,582 - __main__ - DEBUG - Executing SQL with parameters for token: 756733, n: 5
+2025-05-27 23:12:33,583 - __main__ - DEBUG - Successfully inserted/updated row for token: 756733, n: 5
+2025-05-27 23:12:33,583 - __main__ - DEBUG - Executing SQL with parameters for token: 756733, n: 6
+2025-05-27 23:12:33,584 - __main__ - DEBUG - Successfully inserted/updated row for token: 756733, n: 6
+2025-05-27 23:12:33,586 - __main__ - INFO - Processing token 13455763 (index 2/3) in UpdateProcess
+2025-05-27 23:12:33,592 - __main__ - WARNING - Donchian channel calculation returned None
+2025-05-27 23:12:33,609 - __main__ - INFO - CSV processing summary: 7 valid rows processed, 0 rows skipped
+2025-05-27 23:12:33,609 - __main__ - DEBUG - Executing SQL with parameters for token: 13455763, n: 0
+2025-05-27 23:12:33,610 - __main__ - DEBUG - Successfully inserted/updated row for token: 13455763, n: 0
+2025-05-27 23:12:33,610 - __main__ - DEBUG - Executing SQL with parameters for token: 13455763, n: 1
+2025-05-27 23:12:33,611 - __main__ - DEBUG - Successfully inserted/updated row for token: 13455763, n: 1
+2025-05-27 23:12:33,612 - __main__ - DEBUG - Executing SQL with parameters for token: 13455763, n: 2
+2025-05-27 23:12:33,613 - __main__ - DEBUG - Successfully inserted/updated row for token: 13455763, n: 2
+2025-05-27 23:12:33,613 - __main__ - DEBUG - Executing SQL with parameters for token: 13455763, n: 3
+2025-05-27 23:12:33,614 - __main__ - DEBUG - Successfully inserted/updated row for token: 13455763, n: 3
+2025-05-27 23:12:33,614 - __main__ - DEBUG - Executing SQL with parameters for token: 13455763, n: 4
+2025-05-27 23:12:33,615 - __main__ - DEBUG - Successfully inserted/updated row for token: 13455763, n: 4
+2025-05-27 23:12:33,615 - __main__ - DEBUG - Executing SQL with parameters for token: 13455763, n: 5
+2025-05-27 23:12:33,616 - __main__ - DEBUG - Successfully inserted/updated row for token: 13455763, n: 5
+2025-05-27 23:12:33,616 - __main__ - DEBUG - Executing SQL with parameters for token: 13455763, n: 6
+2025-05-27 23:12:33,617 - __main__ - DEBUG - Successfully inserted/updated row for token: 13455763, n: 6
+2025-05-27 23:12:33,618 - werkzeug - INFO - 127.0.0.1 - - [27/May/2025 23:12:33] "GET /update HTTP/1.1" 200 -
+2025-05-27 23:13:09,639 - __main__ - INFO - Found 1 tokens to process
+2025-05-27 23:13:09,640 - __main__ - INFO - Processing token 13455763 (index 0/1)
+2025-05-27 23:13:09,640 - __main__ - DEBUG - Processing token 13455763
+2025-05-27 23:13:09,881 - __main__ - DEBUG - Processing chunk 1 for token 13455763
+2025-05-27 23:13:09,889 - __main__ - WARNING - Donchian channel calculation returned None
+2025-05-27 23:13:10,654 - __main__ - INFO - Skipping CSV header row
+2025-05-27 23:13:10,665 - __main__ - INFO - CSV processing summary: 10 valid rows processed, 0 rows skipped
+2025-05-27 23:13:10,665 - __main__ - DEBUG - Executing SQL with parameters for token: 13455763, n: 0
+2025-05-27 23:13:10,861 - __main__ - DEBUG - Successfully inserted/updated row for token: 13455763, n: 0
+2025-05-27 23:13:10,939 - __main__ - DEBUG - Executing SQL with parameters for token: 13455763, n: 1
+2025-05-27 23:13:11,122 - __main__ - DEBUG - Successfully inserted/updated row for token: 13455763, n: 1
+2025-05-27 23:13:11,210 - __main__ - DEBUG - Executing SQL with parameters for token: 13455763, n: 2
+2025-05-27 23:13:11,384 - __main__ - DEBUG - Successfully inserted/updated row for token: 13455763, n: 2
+2025-05-27 23:13:11,472 - __main__ - DEBUG - Executing SQL with parameters for token: 13455763, n: 3
+2025-05-27 23:13:11,674 - __main__ - DEBUG - Successfully inserted/updated row for token: 13455763, n: 3
+2025-05-27 23:13:11,760 - __main__ - DEBUG - Executing SQL with parameters for token: 13455763, n: 4
+2025-05-27 23:13:11,962 - __main__ - DEBUG - Successfully inserted/updated row for token: 13455763, n: 4
+2025-05-27 23:13:12,063 - __main__ - DEBUG - Executing SQL with parameters for token: 13455763, n: 5
+2025-05-27 23:13:12,270 - __main__ - DEBUG - Successfully inserted/updated row for token: 13455763, n: 5
+2025-05-27 23:13:12,348 - __main__ - DEBUG - Executing SQL with parameters for token: 13455763, n: 6
+2025-05-27 23:13:12,573 - __main__ - DEBUG - Successfully inserted/updated row for token: 13455763, n: 6
+2025-05-27 23:13:12,652 - __main__ - DEBUG - Executing SQL with parameters for token: 13455763, n: 7
+2025-05-27 23:13:12,857 - __main__ - DEBUG - Successfully inserted/updated row for token: 13455763, n: 7
+2025-05-27 23:13:12,933 - __main__ - DEBUG - Executing SQL with parameters for token: 13455763, n: 8
+2025-05-27 23:13:13,111 - __main__ - DEBUG - Successfully inserted/updated row for token: 13455763, n: 8
+2025-05-27 23:13:13,192 - __main__ - DEBUG - Executing SQL with parameters for token: 13455763, n: 9
+2025-05-27 23:13:13,372 - __main__ - DEBUG - Successfully inserted/updated row for token: 13455763, n: 9
+2025-05-27 23:13:13,540 - werkzeug - INFO - 127.0.0.1 - - [27/May/2025 23:13:13] "GET / HTTP/1.1" 200 -
