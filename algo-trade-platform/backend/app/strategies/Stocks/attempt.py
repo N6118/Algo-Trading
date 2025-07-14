@@ -73,7 +73,7 @@ def InitProcess():
         # Remote database configuration
         password = os.getenv("DB_PASSWORD", "password")
         encoded_password = urlquote(password)
-        uri = f"postgresql://postgres:{encoded_password}@139.59.38.207:5432/theostock"
+        uri = f"postgresql://postgres:{encoded_password}@100.121.186.86:5432/theodb"
         
         input_table = 'stock_ohlc_15min'
         output_table = 'tbl_ohlc_fifteen_output'

@@ -27,7 +27,7 @@ TWS_CLIENT_ID = 123  # Unique client ID for this connection
 
 # Remote database configuration
 password = quote_plus("password")
-DB_URI = f"postgresql://postgres:{password}@139.59.38.207:5432/theostock"
+DB_URI = f"postgresql://postgres:{password}@100.121.186.86:5432/theodb"
 pool = SimpleConnectionPool(1, 5, DB_URI)  # Connection pool (min=1, max=5)
 
 app = Flask(__name__)

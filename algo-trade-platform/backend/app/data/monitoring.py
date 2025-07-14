@@ -46,19 +46,29 @@ class SystemMonitor:
             except Exception as e:
                 logging.error(f"❌ Error in monitoring loop: {e}")
 
+    def _get_connection(self):
+        return pool.getconn()
+
+    def _release_connection(self, conn):
+        pool.putconn(conn)
+
     def _check_system_health(self):
         """Check overall system health."""
         try:
-            conn = pool.getconn()
+            conn = self._get_connection()
             with conn.cursor() as cur:
                 # Check database connection
                 cur.execute("SELECT 1")
                 
-                # Check table sizes
+                # Check table sizes with optimized query
                 cur.execute("""
-                    SELECT relname, n_live_tup 
-                    FROM pg_stat_user_tables 
-                    WHERE relname IN ('stock_ticks', 'ibkr_contracts')
+                    SELECT relname, 
+                           (SELECT COUNT(*) FROM pg_stat_user_tables WHERE relname = t.relname) as row_count
+                    FROM pg_class t
+                    LEFT JOIN pg_namespace n ON n.oid = t.relnamespace
+                    WHERE t.relkind = 'r' 
+                    AND n.nspname = 'public'
+                    AND t.relname IN ('stock_ticks', 'ibkr_contracts')
                 """)
                 table_stats = cur.fetchall()
                 
@@ -66,28 +76,32 @@ class SystemMonitor:
                 for table, rows in table_stats:
                     logging.info(f"📊 Table {table}: {rows:,} rows")
                 
-                # Check for any errors in the last hour
+                # Check for any errors in the last hour with optimized query
                 cur.execute("""
                     SELECT COUNT(*) 
-                    FROM stock_ticks 
-                    WHERE timestamp > NOW() - INTERVAL '1 hour'
+                    FROM (
+                        SELECT 1 
+                        FROM stock_ticks 
+                        WHERE timestamp > NOW() - INTERVAL '1 hour'
+                        LIMIT 10000
+                    ) AS subquery
                 """)
                 recent_ticks = cur.fetchone()[0]
                 
                 if recent_ticks == 0:
                     logging.warning("⚠️ No ticks received in the last hour")
-                
-            pool.putconn(conn)
+            
+            self._release_connection(conn)
             
         except Exception as e:
             logging.error(f"❌ System health check failed: {e}")
-            if conn:
-                pool.putconn(conn)
+            if 'conn' in locals():
+                self._release_connection(conn)
 
     def _check_data_latency(self):
         """Check data latency for each symbol."""
         try:
-            conn = pool.getconn()
+            conn = self._get_connection()
             with conn.cursor() as cur:
                 # Get latest tick for each symbol
                 cur.execute("""

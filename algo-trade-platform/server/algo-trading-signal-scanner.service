@@ -1,0 +1,18 @@
+[Unit]
+Description=Algo Trading Signal Scanner Service
+After=network.target postgresql.service algo-trading-strategy.service
+Requires=algo-trading-strategy.service
+
+[Service]
+User=root
+WorkingDirectory=/path/to/algo-trade-platform
+ExecStart=/usr/bin/python3 /path/to/algo-trade-platform/backend/app/signal_scanner/scanner.py
+Restart=always
+RestartSec=10
+Environment=DB_PASSWORD=password
+Environment=SCANNER_CONFIG_PATH=/path/to/algo-trade-platform/config/scanner_config.json
+Environment=PYTHONPATH=/path/to/algo-trade-platform
+
+[Install]
+WantedBy=multi-user.target
+

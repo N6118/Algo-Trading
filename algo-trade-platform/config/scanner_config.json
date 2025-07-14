@@ -1,0 +1,32 @@
+{
+    "market_hours": {
+        "enabled": true,
+        "timezone": "US/Eastern",
+        "regular_hours": {
+            "open": "09:30",
+            "close": "16:00"
+        },
+        "extended_hours": {
+            "enabled": false,
+            "pre_market_open": "04:00",
+            "post_market_close": "20:00"
+        },
+        "trading_days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+    },
+    "scanning": {
+        "interval_minutes": 1,
+        "max_signals_per_day": 10,
+        "default_timeframe": "15min"
+    },
+    "database": {
+        "host": "139.59.38.207",
+        "port": 5432,
+        "user": "postgres",
+        "password": "password",
+        "database": "theostock"
+    },
+    "logging": {
+        "level": "INFO",
+        "file_retention_days": 7
+    }
+}

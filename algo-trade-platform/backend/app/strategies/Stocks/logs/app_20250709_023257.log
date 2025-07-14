@@ -1,0 +1,25 @@
+2025-07-09 02:32:57,253 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5001
+ * Running on http://192.168.46.132:5001
+2025-07-09 02:32:57,253 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-07-09 02:33:09,176 - __main__ - INFO - Found 1 tokens to process
+2025-07-09 02:33:09,277 - __main__ - INFO - Processing token 13455763 (index 0/1)
+2025-07-09 02:33:09,277 - __main__ - DEBUG - Processing token 13455763
+2025-07-09 02:33:10,230 - __main__ - DEBUG - Processing chunk 1 for token 13455763
+2025-07-09 02:33:10,234 - __main__ - WARNING - Donchian channel calculation returned None
+2025-07-09 02:33:12,180 - __main__ - INFO - Skipping CSV header row
+2025-07-09 02:33:12,186 - __main__ - INFO - CSV processing summary: 6 valid rows processed, 0 rows skipped
+2025-07-09 02:33:12,187 - __main__ - DEBUG - Executing SQL with parameters for token: 13455763, n: 0
+2025-07-09 02:33:12,722 - __main__ - DEBUG - Successfully inserted/updated row for token: 13455763, n: 0
+2025-07-09 02:33:12,990 - __main__ - DEBUG - Executing SQL with parameters for token: 13455763, n: 1
+2025-07-09 02:33:13,525 - __main__ - DEBUG - Successfully inserted/updated row for token: 13455763, n: 1
+2025-07-09 02:33:13,795 - __main__ - DEBUG - Executing SQL with parameters for token: 13455763, n: 2
+2025-07-09 02:33:14,338 - __main__ - DEBUG - Successfully inserted/updated row for token: 13455763, n: 2
+2025-07-09 02:33:14,661 - __main__ - DEBUG - Executing SQL with parameters for token: 13455763, n: 3
+2025-07-09 02:33:15,232 - __main__ - DEBUG - Successfully inserted/updated row for token: 13455763, n: 3
+2025-07-09 02:33:15,502 - __main__ - DEBUG - Executing SQL with parameters for token: 13455763, n: 4
+2025-07-09 02:33:16,261 - __main__ - DEBUG - Successfully inserted/updated row for token: 13455763, n: 4
+2025-07-09 02:33:16,504 - __main__ - DEBUG - Executing SQL with parameters for token: 13455763, n: 5
+2025-07-09 02:33:17,032 - __main__ - DEBUG - Successfully inserted/updated row for token: 13455763, n: 5
+2025-07-09 02:33:17,575 - werkzeug - INFO - 127.0.0.1 - - [09/Jul/2025 02:33:17] "GET / HTTP/1.1" 200 -
