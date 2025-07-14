@@ -13,7 +13,7 @@ POLYGON_BASE_URL = "https://api.polygon.io"
 
 # Database configuration
 password = quote_plus("password")
-DB_URI = f"postgresql://postgres:{password}@139.59.38.207:5432/theostock"
+DB_URI = f"postgresql://postgres:{password}@100.121.186.86:5432/theodb"
 pool = SimpleConnectionPool(1, 5, DB_URI)
 
 # Configure logging

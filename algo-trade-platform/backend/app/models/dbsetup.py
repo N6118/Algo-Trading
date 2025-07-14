@@ -3,7 +3,7 @@ from urllib.parse import quote_plus
 
 # Remote database configuration
 password = quote_plus("password")
-DB_URI = f"postgresql://postgres:{password}@139.59.38.207:5432/theostock"
+DB_URI = f"postgresql://postgres:{password}@100.121.186.86:5432/theodb"
 
 def setup_database():
     """Creates tables and continuous aggregates in TimescaleDB (Run only once)."""
