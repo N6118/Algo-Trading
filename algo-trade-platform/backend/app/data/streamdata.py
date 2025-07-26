@@ -12,6 +12,15 @@ from ibapi.wrapper import EWrapper
 from ibapi.contract import Contract
 from urllib.parse import quote_plus
 
+# Import Telegram notifier
+from backend.app.services.telegram_notifier import (
+    send_server_start_notification,
+    send_server_stop_notification,
+    send_first_entry_notification,
+    send_last_entry_notification,
+    send_connection_status
+)
+
 # Add the project root to the Python path
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 if project_root not in sys.path:
@@ -45,17 +54,23 @@ class IBapi(EWrapper, EClient):
         self.reqId_map = {}  # reqId -> (symbol, conId) mapping
         self.connected = False
         self.connection_timeout = 10  # seconds to wait for connection
+        self.first_entry_sent = False  # Track if first entry notification was sent
+        self.last_entry_data = None  # Store last entry data for shutdown notification
 
     def connectAck(self):
         """Called when connection is acknowledged by TWS."""
         self.connected = True
         logging.info("✅ TWS Connection Acknowledged")
+        # Send Telegram notification for connection established
+        send_connection_status("connected")
         super().connectAck()
 
     def connectionClosed(self):
         """Called when connection is closed."""
         self.connected = False
         logging.warning("❌ TWS Connection Closed")
+        # Send Telegram notification for connection lost
+        send_connection_status("disconnected")
         super().connectionClosed()
 
     def wait_for_connection(self):
@@ -182,6 +197,20 @@ class IBapi(EWrapper, EClient):
                 is_valid, error_msg = self._validate_tick_data(token, symbol, ts, price, -1)
                 if is_valid:
                     logging.info(f"📊 Tick Price: {ts}, Token: {token}, Symbol: {symbol}, Price: {price}")
+                    
+                    # Track first entry for Telegram notification
+                    if not self.first_entry_sent:
+                        send_first_entry_notification(symbol, price, 0)  # Volume will be updated when available
+                        self.first_entry_sent = True
+                    
+                    # Store last entry data for shutdown notification
+                    self.last_entry_data = {
+                        'symbol': symbol,
+                        'price': price,
+                        'volume': 0,  # Will be updated when volume data arrives
+                        'timestamp': ts
+                    }
+                    
                     # Store price in a temporary cache
                     self._cache_tick_data(token, symbol, ts, price=price)
                 else:
@@ -201,6 +230,11 @@ class IBapi(EWrapper, EClient):
                 is_valid, error_msg = self._validate_tick_data(token, symbol, ts, None, size)
                 if is_valid:
                     logging.info(f"📊 Tick Volume: {ts}, Token: {token}, Symbol: {symbol}, Volume: {size}")
+                    
+                    # Update last entry data with volume
+                    if self.last_entry_data and self.last_entry_data['symbol'] == symbol:
+                        self.last_entry_data['volume'] = size
+                    
                     insert_tick(token, symbol, ts, None, size)
                 else:
                     logging.error(f"❌ Invalid tick volume data: {error_msg}")
@@ -278,6 +312,9 @@ def run_ibkr():
     """Start IBKR API loop in a separate thread."""
     app_ibkr = IBapi()
     
+    # Send server start notification
+    send_server_start_notification()
+    
     # Start futures roll manager
     futures_roll_manager.start()
     
@@ -288,7 +325,10 @@ def run_ibkr():
         
         # Wait for connection to be established
         if not app_ibkr.wait_for_connection():
-            raise Exception("Failed to connect to TWS within timeout period")
+            error_msg = "Failed to connect to TWS within timeout period"
+            logging.error(f"❌ {error_msg}")
+            send_connection_status("error", error_msg)
+            raise Exception(error_msg)
             
         api_thread = threading.Thread(target=app_ibkr.run, daemon=True)
         api_thread.start()
@@ -327,7 +367,19 @@ def run_ibkr():
             
     except Exception as e:
         logging.error(f"❌ Failed to connect to TWS: {e}")
+        send_connection_status("error", str(e))
     finally:
+        # Send last entry notification if we have data
+        if app_ibkr.last_entry_data:
+            send_last_entry_notification(
+                app_ibkr.last_entry_data['symbol'],
+                app_ibkr.last_entry_data['price'],
+                app_ibkr.last_entry_data['volume']
+            )
+        
+        # Send server stop notification
+        send_server_stop_notification()
+        
         # Stop futures roll manager
         futures_roll_manager.stop()
         if app_ibkr.isConnected():

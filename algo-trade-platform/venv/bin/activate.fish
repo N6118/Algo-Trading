@@ -1,5 +1,9 @@
 # This file must be used with "source <venv>/bin/activate.fish" *from fish*
+<<<<<<< HEAD
 # (https://fishshell.com/); you cannot run it directly.
+=======
+# (https://fishshell.com/). You cannot run it directly.
+>>>>>>> 001267c5e5004fb8de3c6b8bbc2d0dda30761cfa
 
 function deactivate  -d "Exit virtual environment and return to normal shell environment"
     # reset old environment variables
@@ -33,10 +37,17 @@ end
 # Unset irrelevant variables.
 deactivate nondestructive
 
+<<<<<<< HEAD
 set -gx VIRTUAL_ENV "/Users/na61/Desktop/US stockmarket Algotrading /algo-trade-platform/venv"
 
 set -gx _OLD_VIRTUAL_PATH $PATH
 set -gx PATH "$VIRTUAL_ENV/bin" $PATH
+=======
+set -gx VIRTUAL_ENV /home/anurag/Desktop/Algo-Trading/algo-trade-platform/venv
+
+set -gx _OLD_VIRTUAL_PATH $PATH
+set -gx PATH "$VIRTUAL_ENV/"bin $PATH
+>>>>>>> 001267c5e5004fb8de3c6b8bbc2d0dda30761cfa
 
 # Unset PYTHONHOME if set.
 if set -q PYTHONHOME
@@ -56,7 +67,11 @@ if test -z "$VIRTUAL_ENV_DISABLE_PROMPT"
         set -l old_status $status
 
         # Output the venv prompt; color taken from the blue of the Python logo.
+<<<<<<< HEAD
         printf "%s%s%s" (set_color 4B8BBE) "(venv) " (set_color normal)
+=======
+        printf "%s%s%s" (set_color 4B8BBE) '(venv) ' (set_color normal)
+>>>>>>> 001267c5e5004fb8de3c6b8bbc2d0dda30761cfa
 
         # Restore the return status of the previous command.
         echo "exit $old_status" | .
@@ -65,5 +80,9 @@ if test -z "$VIRTUAL_ENV_DISABLE_PROMPT"
     end
 
     set -gx _OLD_FISH_PROMPT_OVERRIDE "$VIRTUAL_ENV"
+<<<<<<< HEAD
     set -gx VIRTUAL_ENV_PROMPT "(venv) "
+=======
+    set -gx VIRTUAL_ENV_PROMPT '(venv) '
+>>>>>>> 001267c5e5004fb8de3c6b8bbc2d0dda30761cfa
 end

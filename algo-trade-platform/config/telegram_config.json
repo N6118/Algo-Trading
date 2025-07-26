@@ -1,0 +1,12 @@
+{
+    "bot_token": "8161925605:AAEFvQtiTmnjUnLiR1BAfVnxVfu8aOg-Yhk",
+    "chat_id": "US-stocks.Jr",
+    "notifications": {
+        "server_start": true,
+        "server_stop": true,
+        "first_entry": true,
+        "last_entry": true,
+        "connection_status": true
+    },
+    "message_format": "HTML"
+} 

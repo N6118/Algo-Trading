@@ -1,6 +1,10 @@
+<<<<<<< HEAD
 #!/bin/sh
 '''exec' "/Users/na61/Desktop/US stockmarket Algotrading /algo-trade-platform/venv/bin/python3.11" "$0" "$@"
 ' '''
+=======
+#!/home/anurag/Desktop/Algo-Trading/algo-trade-platform/venv/bin/python3
+>>>>>>> 001267c5e5004fb8de3c6b8bbc2d0dda30761cfa
 # -*- coding: utf-8 -*-
 import re
 import sys
