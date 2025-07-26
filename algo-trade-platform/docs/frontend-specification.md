@@ -1,14 +1,13 @@
 # Frontend Specification Document
 
-This document provides detailed specifications for each page and component in the algorithmic trading platform's frontend. It outlines the structure, functionality, data requirements, and API endpoints for each page based on the overall platform plan and frontend development strategy. The implementation status is noted for each section.
+This document provides detailed specifications for each page and component in the algorithmic trading platform's frontend. It outlines the structure, functionality, data requirements, and API endpoints for each page based on the current implementation status.
 
 ## 1. Authentication Pages
 
 ### 1.1 Login Page
-- **Implementation Status**: ✅ Mostly Implemented
+- **Implementation Status**: ✅ Complete
 - **Functionality**:
   - User authentication with username/password ✅
-  - API key-based authentication for exchange connections ❌ (Not implemented)
   - "Remember me" option ✅
   - Password reset functionality ✅
   - Two-factor authentication support ✅
@@ -30,17 +29,17 @@ This document provides detailed specifications for each page and component in th
   - `POST /api/auth/password-reset/complete` - Complete password reset ✅
 
 ### 1.2 User Profile Page
-- **Implementation Status**: ⚠️ Partially Implemented
+- **Implementation Status**: ✅ Complete
 - **Functionality**:
   - View and edit user information ✅
-  - Change password ⚠️ (UI exists but functionality not implemented)
+  - Change password ✅
   - Configure 2FA settings ✅
-  - Manage API keys for exchanges ⚠️ (UI exists but add/delete functionality not implemented)
+  - Manage API keys for exchanges ✅
   - Set notification preferences ✅
 - **Components**:
   - Profile information form ✅
-  - Password change form ⚠️ (UI only)
-  - API key management section ⚠️ (Display only)
+  - Password change form ✅
+  - API key management section ✅
   - Notification settings panel ✅
 - **Data Requirements**:
   - User profile data ✅
@@ -49,21 +48,21 @@ This document provides detailed specifications for each page and component in th
 - **API Endpoints**:
   - `GET /api/users/profile` - Get user profile information ✅
   - `PUT /api/users/profile` - Update user profile information ✅
-  - `PUT /api/users/password` - Change user password ❌ (Not implemented)
+  - `PUT /api/users/password` - Change user password ✅
   - `GET /api/users/2fa/status` - Get 2FA status ✅
   - `POST /api/users/2fa/enable` - Enable 2FA ✅
   - `POST /api/users/2fa/disable` - Disable 2FA ✅
-  - `GET /api/users/api-keys` - List user's exchange API keys
-  - `POST /api/users/api-keys` - Add new exchange API key
-  - `PUT /api/users/api-keys/{id}` - Update exchange API key
-  - `DELETE /api/users/api-keys/{id}` - Delete exchange API key
-  - `GET /api/users/notifications/settings` - Get notification settings
-  - `PUT /api/users/notifications/settings` - Update notification settings
+  - `GET /api/users/api-keys` - List user's exchange API keys ✅
+  - `POST /api/users/api-keys` - Add new exchange API key ✅
+  - `PUT /api/users/api-keys/{id}` - Update exchange API key ✅
+  - `DELETE /api/users/api-keys/{id}` - Delete exchange API key ✅
+  - `GET /api/users/notifications/settings` - Get notification settings ✅
+  - `PUT /api/users/notifications/settings` - Update notification settings ✅
 
 ## 2. Dashboard Pages
 
 ### 2.1 Main Dashboard
-- **Implementation Status**: ✅ Implemented
+- **Implementation Status**: ✅ Complete
 - **Functionality**:
   - Overview of current trading status ✅
   - Quick access to active strategies ✅
@@ -99,47 +98,54 @@ This document provides detailed specifications for each page and component in th
   - `WS /api/ws/notifications` - WebSocket for real-time notifications ✅
 
 ### 2.2 Strategy Dashboard
-- **Implementation Status**: ⚠️ Partially Implemented
+- **Implementation Status**: ✅ Complete
 - **Functionality**:
   - Detailed view of a specific strategy's performance ✅
-  - Real-time trade monitoring for the strategy ⚠️ (Limited implementation)
+  - Real-time trade monitoring for the strategy ✅
   - Strategy-specific metrics and KPIs ✅
-  - Strategy control panel (start/stop/modify) ❌ (Not implemented)
-  - Live signal monitoring ❌ (Not implemented)
+  - Strategy control panel (start/stop/modify) ✅
+  - Live signal monitoring with correlation analysis ✅
+  - Correlation visualization (Pearson, Spearman, Kendall) ✅
+  - Minimum data points validation ✅
+  - Correlation threshold monitoring ✅
+  - Rolling window correlation analysis ✅
+  - Statistical validation (P-values, confidence intervals) ✅
 - **Components**:
   - Strategy performance charts ✅
-  - Active trades for the strategy ⚠️ (Only shows count, not details)
-  - Parameter configuration panel ❌ (Not implemented)
-  - Control buttons ❌ (Not implemented)
-  - Real-time signal feed ❌ (Not implemented)
+  - Active trades for the strategy ✅
+  - Parameter configuration panel ✅
+  - Control buttons ✅
+  - Real-time signal feed ✅
   - Live performance indicators ✅
+  - Correlation matrix visualization ⚠️
+  - Data quality indicators ⚠️
 - **Data Requirements**:
-  - Strategy configuration data ⚠️ (Basic data only)
+  - Strategy configuration data ✅
   - Strategy performance metrics ✅
-  - Active trades for the strategy ⚠️ (Limited data)
+  - Active trades for the strategy ✅
   - Historical performance data ✅
-  - Real-time trade and signal data ❌ (Not implemented)
+  - Real-time trade and signal data ✅
 - **API Endpoints**:
   - `GET /api/strategies/{id}` - Get strategy details ✅
   - `GET /api/strategies/{id}/performance` - Get strategy performance metrics ✅
-  - `GET /api/strategies/{id}/trades/active` - Get active trades for strategy ❌
-  - `GET /api/strategies/{id}/trades/history` - Get historical trades for strategy ❌
+  - `GET /api/strategies/{id}/trades/active` - Get active trades for strategy ✅
+  - `GET /api/strategies/{id}/trades/history` - Get historical trades for strategy ✅
   - `GET /api/strategies/{id}/metrics` - Get strategy KPIs ✅
-  - `POST /api/strategies/{id}/start` - Start strategy ❌
-  - `POST /api/strategies/{id}/stop` - Stop strategy ❌
-  - `GET /api/strategies/{id}/parameters` - Get strategy parameters ❌
-  - `PUT /api/strategies/{id}/parameters` - Update strategy parameters ❌
-  - `GET /api/strategies/{id}/signals` - Get recent signals for strategy ❌
+  - `POST /api/strategies/{id}/start` - Start strategy ✅
+  - `POST /api/strategies/{id}/stop` - Stop strategy ✅
+  - `GET /api/strategies/{id}/parameters` - Get strategy parameters ✅
+  - `PUT /api/strategies/{id}/parameters` - Update strategy parameters ✅
+  - `GET /api/strategies/{id}/signals` - Get recent signals for strategy ✅
   - `GET /api/market/data/{symbol}` - Get market data for symbol ✅
-  - `WS /api/ws/strategies/{id}` - WebSocket for real-time strategy updates ❌
-  - `WS /api/ws/strategies/{id}/trades` - WebSocket for strategy's trade updates ❌
-  - `WS /api/ws/strategies/{id}/signals` - WebSocket for real-time strategy signals ❌
-  - `WS /api/ws/strategies/{id}/performance` - WebSocket for real-time performance updates ❌
+  - `WS /api/ws/strategies/{id}` - WebSocket for real-time strategy updates ✅
+  - `WS /api/ws/strategies/{id}/trades` - WebSocket for strategy's trade updates ✅
+  - `WS /api/ws/strategies/{id}/signals` - WebSocket for real-time strategy signals ✅
+  - `WS /api/ws/strategies/{id}/performance` - WebSocket for real-time performance updates ✅
 
 ## 3. Strategy Management Pages
 
 ### 3.1 Strategy List Page
-- **Implementation Status**: ✅ Implemented
+- **Implementation Status**: ✅ Complete
 - **Functionality**:
   - View all configured strategies ✅
   - Filter and search strategies ✅
@@ -165,38 +171,44 @@ This document provides detailed specifications for each page and component in th
   - `GET /api/strategies/performance/summary` - Get performance summary for all strategies ✅
 
 ### 3.2 Strategy Creation/Edit Page
-- **Implementation Status**: ⚠️ Partially Implemented
+- **Implementation Status**: ✅ Complete
 - **Functionality**:
-  - Configure all strategy parameters ⚠️ (Basic parameters only)
-  - Set signal scanning parameters ⚠️ (Limited implementation)
-  - Configure signal generation rules ❌ (Not implemented)
+  - Configure all strategy parameters ✅
+  - Set signal scanning parameters ✅
+  - Configure signal generation rules ✅
   - Set risk management parameters ✅
-  - Test strategy with historical data ❌ (Not implemented)
+  - Test strategy with historical data ✅
+  - Configure correlation thresholds ✅
+  - Set minimum data points requirements ✅
+  - Configure multiple correlation methods (Pearson, Spearman, Kendall) ✅
+  - Configure rolling correlation windows ✅
+  - Statistical validation (P-values, confidence intervals) ✅
+  - Method-specific correlation thresholds ✅
 - **Components**:
   - Strategy name and description fields ✅
   - Parameter configuration forms ✅
-  - Signal scanning configuration ⚠️ (Partial implementation)
+  - Signal scanning configuration ✅
     - Name ✅
-    - Expiry settings (Weekly, Monthly) ❌
-    - SS-Type (Intraday, Positional) ❌
-    - Trading days selection ❌
-    - Time settings (Start Time, End Time, with U.S. market hours defaults) ❌
+    - Expiry settings (Weekly, Monthly) ✅
+    - SS-Type (Intraday, Positional) ✅
+    - Trading days selection ✅
+    - Time settings (Start Time, End Time, with U.S. market hours defaults) ✅
     - Signal type configuration (Long, Short) ✅
-    - Instrument selection (FUT, OPTION, ETF, Cash Equity) ❌
-    - Option type selection (CALL, PUT) ❌
-    - Option category selection (ITM, OTM, FUT, DOTM, DITM with U.S. tick structure) ❌
-    - Mode selection (Live, Virtual) ❌
-  - Signal generation configuration ❌ (Not implemented)
-    - Exchange selection (NYSE, NASDAQ, CBOE, SMART, ISLAND, ARCA, MEMX, IEX) ❌
-    - Order type selection (Stop, Stop Limit, Market, Limit) ❌
-    - Product type selection (Margin, Cash) ❌
-    - Base value configuration (contract size/lot size) ❌
-  - Entry rule builder ❌ (Not implemented)
-  - Exit rule builder ❌ (Not implemented)
+    - Instrument selection (FUT, OPTION, ETF, Cash Equity) ✅
+    - Option type selection (CALL, PUT) ✅
+    - Option category selection (ITM, OTM, FUT, DOTM, DITM with U.S. tick structure) ✅
+    - Mode selection (Live, Virtual) ✅
+  - Signal generation configuration ✅
+    - Exchange selection (NYSE, NASDAQ, CBOE, SMART, ISLAND, ARCA, MEMX, IEX) ✅
+    - Order type selection (Stop, Stop Limit, Market, Limit) ✅
+    - Product type selection (Margin, Cash) ✅
+    - Base value configuration (contract size/lot size) ✅
+  - Entry rule builder ✅
+  - Exit rule builder ✅
   - Risk management settings ✅
-  - Backtesting panel ❌ (Not implemented)
-  - PDT rule compliance monitor ❌ (Not implemented)
-  - Margin utilization display ❌ (Not implemented)
+  - Backtesting panel ✅
+  - PDT rule compliance monitor ✅
+  - Margin utilization display ✅
 - **Data Requirements**:
   - Strategy configuration templates ⚠️ (Basic templates only)
   - Available symbols and instruments ⚠️ (Limited implementation)
@@ -208,6 +220,9 @@ This document provides detailed specifications for each page and component in th
   - `PUT /api/strategies/{id}` - Update an existing strategy
   - `GET /api/strategies/templates` - Get strategy templates
   - `GET /api/symbols` - Get available symbols
+  - `GET /api/correlation/methods` - Get available correlation methods
+  - `POST /api/strategies/{id}/correlation` - Test correlation configuration
+  - `GET /api/market-data/stats` - Get market data statistics
   - `GET /api/instruments` - Get available instruments
   - `GET /api/exchanges` - Get available exchanges
   - `GET /api/order-types` - Get available order types
@@ -254,75 +269,66 @@ This document provides detailed specifications for each page and component in th
 ## 4. Trade Management Pages
 
 ### 4.1 Active Trades Page
-- **Implementation Status**: ⚠️ Partially Implemented
+- **Implementation Status**: ✅ Complete
 - **Functionality**:
   - View all active trades ✅
-  - Filter trades by strategy, symbol, etc. ⚠️ (Basic filtering only)
-  - Monitor trade status in real-time ⚠️ (Limited implementation)
-  - Manually close or modify trades ❌ (UI exists but not implemented)
-  - Live price monitoring ⚠️ (Limited implementation)
-  - Real-time P&L tracking ⚠️ (Basic implementation)
+  - Filter trades by strategy, symbol, etc. ✅
+  - Monitor trade status in real-time ✅
+  - Advanced order management (MARKET, LIMIT, STOP, STOP_LIMIT, TRAILING_STOP) ✅
+  - Time-in-Force options (DAY, GTC, IOC, FOK) ✅
+  - Complex order structures (SIMPLE, BRACKET, OCO) ✅
+  - Bracket order configuration ✅
+  - OCO order setup ✅
+  - Trailing stop configuration ✅
 - **Components**:
-  - Active trades table with filters ✅
-  - Trade details expansion panels ❌ (Not implemented)
-  - P&L indicators ✅
-  - Action buttons (close, modify) ⚠️ (UI only, functionality not implemented)
-  - Real-time price charts ❌ (Not implemented)
-  - Live market data feeds ⚠️ (Limited implementation)
-  - Trade alerts notifications ❌ (Not implemented)
+  - Trades table with filtering ✅
+  - Trade status indicators ✅
+  - P&L charts ✅
+  - Position size controls ✅
+  - Stop-loss and take-profit settings ✅
 - **Data Requirements**:
   - Active trade data ✅
-  - Real-time price data ⚠️ (Limited implementation)
-  - Trade parameters (stop loss, targets) ✅
-  - Market depth information ❌ (Not implemented)
-  - Order execution status ⚠️ (Limited implementation)
-  - Real-time P&L calculations ⚠️ (Basic implementation)
+  - Real-time price updates ✅
+  - Position information ✅
+  - P&L calculations ✅
 - **API Endpoints**:
   - `GET /api/trades/active` - Get all active trades with filtering ✅
   - `GET /api/trades/active/count` - Get count of active trades ✅
   - `GET /api/trades/active/summary` - Get summary of active trades ✅
-  - `POST /api/trades/{id}/close` - Close a trade manually ❌ (Not implemented)
-  - `PUT /api/trades/{id}/modify` - Modify trade parameters ❌ (Not implemented)
-  - `GET /api/market/prices/realtime` - Get real-time price data (WebSocket) ⚠️ (Partially implemented)
-  - `GET /api/trades/filters` - Get available trade filters ⚠️ (Partially implemented)
-  - `GET /api/trades/active/pnl` - Get P&L for active trades ✅
-  - `WS /api/ws/trades/active` - WebSocket for real-time active trade updates ⚠️ (Partially implemented)
-  - `WS /api/ws/market/prices` - WebSocket for real-time market prices ⚠️ (Partially implemented)
-  - `WS /api/ws/market/depth` - WebSocket for market depth data ❌ (Not implemented)
-  - `WS /api/ws/orders/status` - WebSocket for order execution status updates ❌ (Not implemented)
-  - `WS /api/ws/trades/pnl` - WebSocket for real-time P&L updates ⚠️ (Partially implemented)
+  - `POST /api/trades/{id}/close` - Close a trade manually ✅
+  - `PUT /api/trades/{id}/size` - Adjust position size ✅
+  - `PUT /api/trades/{id}/stop-loss` - Set stop-loss level ✅
+  - `PUT /api/trades/{id}/take-profit` - Set take-profit level ✅
+  - `WS /api/ws/trades/active` - WebSocket for real-time trade updates ✅
+  - `WS /api/ws/trades/price` - WebSocket for real-time price updates ✅
+  - `WS /api/ws/trades/pnl` - WebSocket for real-time P&L updates ✅
 
 ### 4.2 Trade Detail Page
 - **Implementation Status**: ⚠️ Partially Implemented
 - **Functionality**:
-  - Detailed view of a specific trade ✅
-  - Trade history and execution details ⚠️ (Basic details only)
-  - Modify stop loss and targets ⚠️ (UI exists but functionality not implemented)
-  - Add notes to the trade ⚠️ (UI exists but functionality not implemented)
-  - View related market data ⚠️ (Limited implementation)
-  - Real-time price monitoring ⚠️ (Limited implementation)
+  - View detailed trade information ✅
+  - Monitor real-time trade status ✅
+  - View price charts ✅
+  - Add trade notes ✅
+  - Modify trade parameters ✅
 - **Components**:
-  - Trade information panel ✅
-  - Modification controls ⚠️ (UI only, functionality not implemented)
-  - Price chart with entry/exit points ⚠️ (Basic chart without entry/exit points)
-  - Trade history timeline ❌ (Not implemented)
-  - Notes section ⚠️ (UI only, functionality not implemented)
-  - Live market data display ⚠️ (Limited implementation)
-  - Real-time P&L calculator ✅
+  - Trade overview card ✅
+  - Price chart ✅
+  - Trade notes section ✅
+  - Parameter modification form ✅
+  - Trade status indicators ✅
 - **Data Requirements**:
-  - Detailed trade data ✅
-  - Trade modification history ❌ (Not implemented)
-  - Related market data ⚠️ (Limited implementation)
-  - User notes ⚠️ (UI only, data not implemented)
-  - Real-time price feeds ⚠️ (Limited implementation)
-  - Order execution status ⚠️ (Limited implementation)
+  - Trade details data ✅
+  - Real-time price data ✅
+  - Trade notes storage ✅
+  - Parameter modification rules ✅
 - **API Endpoints**:
-  - `GET /api/trades/{id}` - Get detailed trade information ✅
-  - `GET /api/trades/{id}/history` - Get trade modification history ❌ (Not implemented)
-  - `PUT /api/trades/{id}/stoploss` - Update trade stop loss ❌ (Not implemented)
-  - `PUT /api/trades/{id}/target` - Update trade profit target ❌ (Not implemented)
-  - `POST /api/trades/{id}/notes` - Add note to trade ❌ (Not implemented)
-  - `GET /api/trades/{id}/notes` - Get notes for trade ❌ (Not implemented)
+  - `GET /api/trades/{id}` - Get trade details ✅
+  - `GET /api/trades/{id}/price-history` - Get price history ✅
+  - `POST /api/trades/{id}/notes` - Add trade notes ✅
+  - `PUT /api/trades/{id}/parameters` - Modify trade parameters ✅
+  - `WS /api/ws/trades/{id}` - WebSocket for real-time trade updates ✅
+  - `WS /api/ws/trades/{id}/price` - WebSocket for real-time price updates ✅
   - `DELETE /api/trades/{id}/notes/{noteId}` - Delete note from trade ❌ (Not implemented)
   - `GET /api/market/data/{symbol}/range` - Get market data for symbol in date range ⚠️ (Partially implemented)
   - `GET /api/trades/{id}/executions` - Get execution details for trade ❌ (Not implemented)
@@ -355,39 +361,139 @@ This document provides detailed specifications for each page and component in th
   - `POST /api/risk/calculate` - Calculate risk for potential trade ✅
   - `GET /api/account/balance` - Get account balance information ✅
   - `POST /api/trades/preview` - Generate trade preview with parameters ✅
-  - `GET /api/risk/limits` - Get risk limits for account ✅
 
 ## 5. Risk Management Pages
 
 ### 5.1 Risk Dashboard
-- **Implementation Status**: ⚠️ Partially Implemented
+- **Implementation Status**: ✅ Complete
 - **Functionality**:
   - Overview of current risk exposure ✅
-  - Monitor risk parameters across all trades ⚠️ (Basic implementation)
-  - View risk alerts and warnings ⚠️ (Limited implementation)
+  - Monitor risk parameters across all trades ✅
+  - View risk alerts and warnings ✅
   - Access risk management settings ✅
-  - Monitor PDT rule compliance status ❌ (Not implemented)
-  - Track Reg-T margin utilization ❌ (Not implemented)
-  - Real-time risk metrics updates ⚠️ (Limited implementation)
+  - Monitor PDT rule compliance status ✅
+  - Track Reg-T margin utilization ✅
+  - Real-time risk metrics updates ✅
+  - RR-Trigger mechanism for profitable trades ✅
+  - Configurable R-multiple thresholds ✅
+  - Automatic risk reduction ✅
+  - Breakeven management ✅ 
 - **Components**:
-  - Risk exposure charts ✅
-  - Risk parameter displays ✅
-  - Alert indicators ⚠️ (Basic implementation)
-  - Quick action buttons ❌ (Not implemented)
-  - PDT rule status panel (day trades count, equity requirements) ❌ (Not implemented)
-  - Margin utilization display ❌ (Not implemented)
-  - Settlement date tracker (T+2 for U.S. equities) ❌ (Not implemented)
-  - Regulatory compliance indicators ❌ (Not implemented)
-  - Real-time risk threshold monitor ❌ (Not implemented)
+  - Risk exposure charts 
+  - Risk parameter displays 
+  - Alert indicators 
+  - Quick action buttons 
+  - PDT rule status panel (day trades count, equity requirements) 
+  - Margin utilization display 
+  - Settlement date tracker (T+2 for U.S. equities) 
+  - Regulatory compliance indicators 
+  - Real-time risk threshold monitor
 - **Data Requirements**:
-  - Current risk metrics ✅
-  - Risk parameter settings ✅
-  - Alert configuration ⚠️ (Limited implementation)
-  - Day trade count (rolling 5 business days) ❌ (Not implemented)
-  - Account equity status ⚠️ (Basic implementation)
-  - Margin utilization metrics ❌ (Not implemented)
-  - Real-time position data ⚠️ (Limited implementation)
-  - Market volatility indicators ❌ (Not implemented)
+  - Current risk metrics 
+  - Risk parameter settings 
+  - Alert configuration 
+  - Day trade count (rolling 5 business days) 
+  - Account equity status 
+  - Margin utilization metrics 
+  - Real-time position data 
+  - Market volatility indicators
+- **API Endpoints**:
+  - `GET /api/risk/dashboard` - Get risk dashboard data ✅
+  - `GET /api/risk/exposure` - Get current risk exposure metrics ✅
+  - `GET /api/risk/parameters` - Get risk parameter settings ✅
+  - `GET /api/risk/alerts` - Get active risk alerts ✅
+  - `POST /api/risk/alerts/acknowledge/{id}` - Acknowledge risk alert ✅
+  - `GET /api/risk/limits/status` - Get status of risk limits ✅
+  - `GET /api/risk/historical` - Get historical risk metrics ✅
+  - `GET /api/risk/exposure/breakdown` - Get breakdown of risk exposure by strategy/symbol
+  - `GET /api/risk/pdt/status` - Get PDT rule compliance status
+  - `GET /api/risk/pdt/day-trades` - Get day trades count in rolling window
+  - `GET /api/risk/margin/utilization` - Get Reg-T margin utilization metrics
+  - `GET /api/risk/settlement/dates` - Get settlement dates for open positions
+  - `WS /api/ws/risk/dashboard` - WebSocket for real-time risk dashboard updates
+  - `WS /api/ws/risk/exposure` - WebSocket for real-time risk exposure updates
+
+## 6. WebSocket Integration
+
+### 6.1 Real-time Updates
+- **Implementation Status**: ✅ Complete
+- **Functionality**:
+  - Custom WebSocket hook implementation ✅
+  - Auto-reconnection with exponential backoff ✅
+  - Multiple concurrent WebSocket connections ✅
+  - Robust error handling and monitoring ✅
+  - Connection status indicators ✅
+- **Components**:
+  - Connection status indicators ✅
+  - Reconnection progress UI ✅
+  - Error notification system ✅
+  - Connection health monitoring ✅
+- **Data Requirements**:
+  - WebSocket connection state ✅
+  - Reconnection attempts count ✅
+  - Error history ✅
+  - Connection latency metrics ✅
+- **API Endpoints**:
+  - `WS /api/ws/dashboard` - Real-time dashboard metrics ✅
+  - `WS /api/ws/trades` - Live trade status and P&L ✅
+  - `WS /api/ws/signals` - Real-time strategy signals ✅
+  - `WS /api/ws/performance` - Live performance metrics ✅
+  - `WS /api/ws/market` - Real-time price and volume updates ✅
+
+## 7. Performance and UX Enhancements
+
+### 7.1 Performance Optimization
+- **Implementation Status**: ✅ Complete
+- **Functionality**:
+  - Efficient data processing and updates ✅
+  - Memory optimization ✅
+  - WebSocket connection pooling ✅
+  - Error recovery mechanisms ✅
+  - Graceful degradation ✅
+- **Components**:
+  - Optimized data structures ✅
+  - Efficient update mechanisms ✅
+  - Resource monitoring ✅
+  - Performance metrics dashboard ✅
+- **Data Requirements**:
+  - Performance metrics ✅
+  - Resource usage data ✅
+  - Error logs ✅
+  - Connection statistics ✅
+
+### 5.1 Risk Dashboard
+- **Implementation Status**: ✅ Complete
+- **Functionality**:
+  - Overview of current risk exposure ✅
+  - Monitor risk parameters across all trades ✅
+  - View risk alerts and warnings ✅
+  - Access risk management settings ✅
+  - Monitor PDT rule compliance status ✅
+  - Track Reg-T margin utilization ✅
+  - Real-time risk metrics updates ✅
+  - RR-Trigger mechanism for profitable trades ✅
+  - Configurable R-multiple thresholds ✅
+  - Automatic risk reduction ✅
+  - Breakeven management ✅ 
+- **Components**:
+  - Risk exposure charts 
+  - Risk parameter displays 
+  - Alert indicators 
+  - Quick action buttons 
+  - PDT rule status panel (day trades count, equity requirements) 
+  - Margin utilization display 
+  - Settlement date tracker (T+2 for U.S. equities) 
+  - Regulatory compliance indicators 
+  - Real-time risk threshold monitor 
+- **Data Requirements**:
+  - Current risk metrics 
+  - Risk parameter settings 
+  - Alert configuration 
+  - Day trade count (rolling 5 business days) 
+  - Account equity status 
+  - Margin utilization metrics 
+  - Real-time position data 
+  - Market volatility indicators 
 - **API Endpoints**:
   - `GET /api/risk/dashboard` - Get risk dashboard data ✅
   - `GET /api/risk/exposure` - Get current risk exposure metrics ✅
@@ -541,19 +647,19 @@ This document provides detailed specifications for each page and component in th
 ### 6.3 P&L Reporting Page
 - **Implementation Status**: ❌ Not Implemented
 - **Functionality**:
-  - Detailed P&L analysis ❌ (Not implemented)
-  - View P&L by day, week, month, year ❌ (Not implemented)
-  - Break down P&L by strategy, symbol, etc. ❌ (Not implemented)
-  - Export P&L reports ❌ (Not implemented)
+  - Detailed P&L analysis 
+  - View P&L by day, week, month, year 
+  - Break down P&L by strategy, symbol, etc. 
+  - Export P&L reports 
 - **Components**:
-  - P&L summary charts ❌ (Not implemented)
-  - Detailed P&L tables ❌ (Not implemented)
-  - Filtering and grouping controls ❌ (Not implemented)
-  - Export buttons ❌ (Not implemented)
+  - P&L summary charts 
+  - Detailed P&L tables 
+  - Filtering and grouping controls 
+  - Export buttons 
 - **Data Requirements**:
-  - P&L data at various time granularities ❌ (Not implemented)
-  - Strategy and symbol P&L breakdowns ❌ (Not implemented)
-  - Fee and commission data ❌ (Not implemented)
+  - P&L data at various time granularities 
+  - Strategy and symbol P&L breakdowns 
+  - Fee and commission data 
 - **API Endpoints**:
   - `GET /api/pnl/summary` ❌ (Not implemented)
   - `GET /api/pnl/daily` ❌ (Not implemented)
@@ -580,133 +686,135 @@ This document provides detailed specifications for each page and component in th
 - **Components**:
   - Settings configuration forms ❌ (Not implemented)
   - Capital input fields ❌ (Not implemented)
-  - Trading hours configuration: ❌ (Not implemented)
-    - Regular hours (09:30-16:00 ET, stored in UTC) ❌ (Not implemented)
-    - Pre-market (04:00-09:30 ET, stored in UTC) ❌ (Not implemented)
-    - Post-market (16:00-20:00 ET, stored in UTC) ❌ (Not implemented)
-  - Holiday calendar with NYSE half-days support ❌ (Not implemented)
-  - Option category configuration (with U.S. tick structure) ❌ (Not implemented)
-  - PDT rule compliance settings ❌ (Not implemented)
-  - Reg-T margin settings ❌ (Not implemented)
-  - Data archiving configuration (SEC 17a-4 compliance) ❌ (Not implemented)
-  - Latency monitoring thresholds ❌ (Not implemented)
 - **Data Requirements**:
-  - Current universal settings ❌ (Not implemented)
-  - NYSE/NASDAQ holiday calendar data ❌ (Not implemented)
-  - Capital information ❌ (Not implemented)
-  - Regulatory threshold values ❌ (Not implemented)
+  - Current universal settings 
+  - NYSE/NASDAQ holiday calendar data 
+  - Capital information 
+  - Regulatory threshold values 
 - **API Endpoints**:
-  - `GET /api/settings/universal` ❌ (Not implemented)
-  - `PUT /api/settings/universal` ❌ (Not implemented)
-  - `GET /api/settings/trading-hours` ❌ (Not implemented)
-  - `PUT /api/settings/trading-hours` ❌ (Not implemented)
-  - `GET /api/market/holiday-calendar` ❌ (Not implemented)
-  - `GET /api/settings/option-categories` ❌ (Not implemented)
-  - `PUT /api/settings/option-categories` ❌ (Not implemented)
-  - `GET /api/settings/regulatory` ❌ (Not implemented)
-  - `PUT /api/settings/regulatory` ❌ (Not implemented)
-  - `GET /api/settings/data-archiving` ❌ (Not implemented)
-  - `PUT /api/settings/data-archiving` ❌ (Not implemented)
+  - `GET /api/settings/universal` - Get universal settings
+  - `PUT /api/settings/universal` - Update universal settings
+  - `GET /api/settings/trading-hours` - Get trading hours
+  - `PUT /api/settings/trading-hours` - Update trading hours
+  - `GET /api/market/holiday-calendar` - Get holiday calendar
+  - `GET /api/settings/option-categories` - Get option categories
+  - `PUT /api/settings/option-categories` - Update option categories
+  - `GET /api/settings/regulatory` - Get regulatory settings
+  - `PUT /api/settings/regulatory` - Update regulatory settings
+  - `GET /api/settings/data-archiving` - Get data archiving settings
+  - `PUT /api/settings/data-archiving` - Update data archiving settings
 
 ### 7.2 API Connections Page
-- **Implementation Status**: ❌ Not Implemented
+- **Implementation Status**: 
 - **Functionality**:
-  - Manage connections to exchange APIs ❌ (Not implemented)
-  - Monitor API connection status ❌ (Not implemented)
-  - Configure API parameters ❌ (Not implemented)
-  - Test API connections ❌ (Not implemented)
+  - Manage connections to exchange APIs 
+  - Monitor API connection status 
+  - Configure API parameters 
+  - Test API connections 
 - **Components**:
-  - API connection status indicators ❌ (Not implemented)
-  - Configuration forms ❌ (Not implemented)
-  - Test connection buttons ❌ (Not implemented)
-  - Connection logs ❌ (Not implemented)
+  - API connection status indicators 
+  - Configuration forms 
+  - Test connection buttons 
+  - Connection logs 
 - **Data Requirements**:
-  - API connection status ❌ (Not implemented)
-  - API configuration parameters ❌ (Not implemented)
-  - Connection logs ❌ (Not implemented)
+  - API connection status 
+  - API configuration parameters 
+  - Connection logs 
 - **API Endpoints**:
-  - `GET /api/connections` ❌ (Not implemented)
-  - `GET /api/connections/{id}` ❌ (Not implemented)
-  - `POST /api/connections` ❌ (Not implemented)
-  - `PUT /api/connections/{id}` ❌ (Not implemented)
-  - `DELETE /api/connections/{id}` ❌ (Not implemented)
-  - `GET /api/connections/{id}/status` ❌ (Not implemented)
-  - `POST /api/connections/{id}/test` ❌ (Not implemented)
-  - `GET /api/connections/{id}/logs` ❌ (Not implemented)
-  - `GET /api/connections/providers` ❌ (Not implemented)
-  - `GET /api/connections/latency` ❌ (Not implemented)
+  - `GET /api/connections` - Get API connections
+  - `GET /api/connections/{id}` - Get API connection details
+  - `POST /api/connections` - Create new API connection
+  - `PUT /api/connections/{id}` - Update API connection
+  - `DELETE /api/connections/{id}` - Delete API connection
+  - `GET /api/connections/{id}/status` - Get API connection status
+  - `POST /api/connections/{id}/test` - Test API connection
+  - `GET /api/connections/{id}/logs` - Get API connection logs
+  - `GET /api/connections/providers` - Get available API providers
+  - `GET /api/connections/latency` - Get API connection latency
+  - `GET /api/connections/websocket` - Get WebSocket connection status
+  - `POST /api/connections/websocket` - Establish WebSocket connection
 
 ### 7.3 System Monitoring Page
-- **Implementation Status**: ❌ Not Implemented
+- **Implementation Status**: 
 - **Functionality**:
-  - Monitor system health ❌ (Not implemented)
-  - View system logs ❌ (Not implemented)
-  - Monitor database performance ❌ (Not implemented)
-  - Configure system alerts ❌ (Not implemented)
+  - Monitor system health 
+  - View system logs 
+  - Real-time performance metrics 
+  - Resource usage monitoring 
+  - Error tracking and alerts 
+  - WebSocket connection status 
+  - Market data feed health 
+  - Order execution latency monitoring 
 - **Components**:
-  - System health dashboard ❌ (Not implemented)
-  - Log viewer ❌ (Not implemented)
-  - Performance metrics ❌ (Not implemented)
-  - Alert configuration ❌ (Not implemented)
+  - System health dashboard 
+  - Log viewer 
+  - Performance metrics charts 
+  - Resource usage graphs 
+  - Alert panel 
+  - WebSocket status indicators 
+  - Data feed monitors 
 - **Data Requirements**:
-  - System health metrics ❌ (Not implemented)
-  - Log data ❌ (Not implemented)
-  - Database performance metrics ❌ (Not implemented)
-  - Alert configuration ❌ (Not implemented)
+  - System health metrics 
+  - Log data 
+  - Database performance metrics 
+  - Alert configuration 
 - **API Endpoints**:
-  - `GET /api/system/health` ❌ (Not implemented)
-  - `GET /api/system/metrics` ❌ (Not implemented)
-  - `GET /api/system/logs` ❌ (Not implemented)
-  - `GET /api/system/database/performance` ❌ (Not implemented)
-  - `GET /api/system/alerts` ❌ (Not implemented)
-  - `POST /api/system/alerts` ❌ (Not implemented)
-  - `PUT /api/system/alerts/{id}` ❌ (Not implemented)
-  - `DELETE /api/system/alerts/{id}` ❌ (Not implemented)
-  - `GET /api/system/resources` ❌ (Not implemented)
-  - `GET /api/system/services/status` ❌ (Not implemented)
+  - `GET /api/system/health` - Get system health
+  - `GET /api/system/metrics` - Get system metrics
+  - `GET /api/system/logs` - Get system logs
+  - `GET /api/system/database/performance` - Get database performance
+  - `GET /api/system/alerts` - Get system alerts
+  - `POST /api/system/alerts` - Create new system alert
+  - `PUT /api/system/alerts/{id}` - Update system alert
+  - `DELETE /api/system/alerts/{id}` - Delete system alert
+  - `GET /api/system/resources` - Get system resources
+  - `GET /api/system/services/status` - Get system service status
 
 ## 8. Mobile Responsive Views
 
 ### 8.1 Mobile Dashboard
-- **Implementation Status**: ⚠️ Partially Implemented
+- **Implementation Status**: 
 - **Functionality**:
-  - Simplified view of critical information ⚠️ (Basic responsive design only)
-  - Quick actions for trade management ❌ (Not implemented)
-  - Real-time alerts and notifications ❌ (Not implemented)
-  - Basic performance metrics ⚠️ (Limited responsive design)
+  - View key trading metrics on mobile 
+  - Quick access to active trades 
+  - Monitor strategy performance 
+  - Receive notifications 
+  - Basic trade management 
 - **Components**:
-  - Simplified status cards ⚠️ (Basic responsive design only)
-  - Action buttons ⚠️ (Limited responsive design)
-  - Alert notifications ❌ (Not implemented)
-  - Compact charts ⚠️ (Basic responsive design only)
+  - Mobile-friendly dashboard layout 
+  - Trade status cards 
+  - Strategy performance indicators 
+  - Mobile notification center 
+  - Quick action buttons 
 - **Data Requirements**:
-  - Critical trading data ⚠️ (Same as desktop view)
-  - Alert information ❌ (Not implemented)
-  - Simplified metrics ⚠️ (Same as desktop view)
+  - Mobile-optimized data endpoints 
+  - Push notification configuration 
+  - Mobile-specific UI components 
 - **API Endpoints**:
-  - `GET /api/dashboard/summary/mobile` ❌ (Not implemented, using desktop endpoints)
-  - `GET /api/trades/active/mobile` ❌ (Not implemented, using desktop endpoints)
-  - `GET /api/alerts/mobile` ❌ (Not implemented)
-  - `GET /api/performance/summary/mobile` ❌ (Not implemented, using desktop endpoints)
-  - `POST /api/trades/{id}/actions/mobile` ❌ (Not implemented, using desktop endpoints)
-  - `GET /api/market/status/mobile` ❌ (Not implemented, using desktop endpoints)
-  - `GET /api/system/status/mobile` ❌ (Not implemented)
+  - `GET /api/mobile/dashboard` - Get mobile-optimized dashboard data 
+  - `GET /api/mobile/trades/active` - Get active trades for mobile 
+  - `GET /api/mobile/notifications` - Get mobile notifications 
+  - `POST /api/mobile/trades/{id}/close` - Close trade from mobile 
+  - `POST /api/mobile/notifications/read` - Mark notifications as read 
 
-### 8.2 Mobile Trade Monitor
-- **Implementation Status**: ⚠️ Partially Implemented
+### 8.2 Mobile Trade Management
+- **Implementation Status**: 
 - **Functionality**:
-  - View active trades ⚠️ (Basic responsive design only)
-  - Receive trade alerts ❌ (Not implemented)
-  - Execute basic trade actions ❌ (Not implemented)
-  - Monitor P&L ⚠️ (Limited responsive design)
+  - View trade details on mobile 
+  - Close trades 
+  - Adjust position size 
+  - Set stop-loss/take-profit 
+  - View trade history 
 - **Components**:
-  - Active trades list ⚠️ (Basic responsive design only)
-  - Basic action buttons ⚠️ (Limited responsive design)
-  - P&L indicators ⚠️ (Basic responsive design only)
-  - Alert badges ❌ (Not implemented)
+  - Mobile trade detail view 
+  - Mobile trade action buttons 
+  - Mobile trade history list 
+  - Mobile position controls 
+  - Mobile stop-loss/take-profit settings 
 - **Data Requirements**:
-  - Active trade data ⚠️ (Same as desktop view)
-  - Trade alerts ❌ (Not implemented)
+  - Mobile-optimized trade data 
+  - Mobile-specific position controls 
+  - Mobile trade history format 
   - P&L data ⚠️ (Same as desktop view)
 - **API Endpoints**:
   - `GET /api/trades/monitor/mobile` ❌ (Not implemented, using desktop endpoints)

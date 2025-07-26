@@ -50,7 +50,7 @@ async def startup_event():
     """Start background services when the application starts"""
     from app.services.market_data_service import start_market_data_collection
     from app.services.signal_service import start_signal_scanning
-    from app.services.trade_monitor_service import start_trade_monitoring
+    from app.services.trade_management_service import start_trade_monitoring
     
     logger.info("Starting background services...")
     

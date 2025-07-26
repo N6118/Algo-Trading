@@ -63,6 +63,7 @@ class SignalGeneration(Base):
     # Relationships
     user = relationship("User", back_populates="signal_generations")
     strategy = relationship("Strategy", back_populates="signal_generations")
+    trades = relationship("Trade", back_populates="signal")
 
     # Constants
     MIN_QUANTITY = 1  # Minimum order quantity

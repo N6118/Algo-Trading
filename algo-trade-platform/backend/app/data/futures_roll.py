@@ -8,7 +8,7 @@ from urllib.parse import quote_plus
 
 # Database configuration
 password = quote_plus("password")
-DB_URI = f"postgresql://postgres:{password}@100.121.186.86:5432/theodb"
+DB_URI = f"postgresql://postgres:{password}@localhost:5432/theodb"
 pool = SimpleConnectionPool(1, 5, DB_URI)
 
 # Configure logging

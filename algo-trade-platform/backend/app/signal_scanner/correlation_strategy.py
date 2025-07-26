@@ -17,6 +17,7 @@ from urllib.parse import quote_plus as urlquote
 from scipy import stats
 from sklearn.preprocessing import StandardScaler
 import pytz
+from sqlalchemy.orm import joinedload
 
 # Add the project root to the Python path
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
@@ -65,7 +66,7 @@ class CorrelationStrategy:
             logger.error(f"Error setting up database connection: {str(e)}")
             raise
     
-    def get_market_data(self, symbol, timeframe, lookback=20):
+    def get_market_data(self, symbol, timeframe, lookback=25):
         """
         Get market data for a symbol.
         
@@ -81,10 +82,10 @@ class CorrelationStrategy:
         try:
             # Map timeframe to table name
             timeframe_map = {
-                '5min': 'five_min_data',
-                '15min': 'fifteen_min_data',
-                '30min': 'thirty_min_data',
-                '1h': 'one_hour_data'
+                 '5min': 'stock_ohlc_5min',
+                '15min': 'tbl_ohlc_fifteen_output',  # or 'stock_ohlc_15min' if you want raw OHLC
+                '30min': 'tbl_ohlc_thirty_output',   # if you have this
+                '1h': 'stock_ohlc_60min'
             }
             
             table_name = timeframe_map.get(timeframe)
@@ -94,11 +95,11 @@ class CorrelationStrategy:
             # Construct query with timezone handling
             query = text(f"""
                 SELECT 
-                    timestamp AT TIME ZONE 'UTC' AT TIME ZONE 'US/Eastern' as timestamp,
+                    created,  -- fetch as naive, localize in pandas
                     open, high, low, close, volume
                 FROM {table_name}
                 WHERE symbol = :symbol
-                ORDER BY timestamp DESC
+                ORDER BY created DESC
                 LIMIT :limit
             """)
             
@@ -111,6 +112,12 @@ class CorrelationStrategy:
             
             # Convert to DataFrame
             df = pd.DataFrame(rows)
+            # Localize 'created' as Asia/Singapore if naive, else just convert
+            dt = pd.to_datetime(df['created'])
+            if dt.dt.tz is None:
+                df['timestamp'] = dt.dt.tz_localize('Asia/Singapore').dt.tz_convert('America/New_York')
+            else:
+                df['timestamp'] = dt.dt.tz_convert('America/New_York')
             df = df.sort_values('timestamp')  # Sort by timestamp ascending
             
             # Validate data
@@ -166,15 +173,17 @@ class CorrelationStrategy:
             return False
         
         # Check for market hours
-        et = pytz.timezone('US/Eastern')
-        market_start = et.localize(datetime.strptime('09:30', '%H:%M').time())
-        market_end = et.localize(datetime.strptime('16:00', '%H:%M').time())
-        
-        df['time'] = df['timestamp'].dt.time
-        if not ((df['time'] >= market_start) & (df['time'] <= market_end)).all():
+        et = pytz.timezone('America/New_York')
+        # Use datetime objects for market start and end
+        market_start_time = datetime.strptime('09:30', '%H:%M').time()
+        market_end_time = datetime.strptime('16:00', '%H:%M').time()
+        # For each row, compare the timestamp as a datetime
+        df['in_market_hours'] = df['timestamp'].apply(lambda ts: market_start_time <= ts.time() <= market_end_time)
+        if not df['in_market_hours'].all():
             logger.warning(f"Data outside market hours found for {symbol}")
             return False
-        
+        # Remove the helper column
+        df.drop(columns=['in_market_hours'], inplace=True)
         return True
     
     def calculate_correlation(self, symbol1_data, symbol2_data, method='pearson', window=None):
@@ -325,21 +334,21 @@ class CorrelationStrategy:
             if correlation is None:
                 return False, "Failed to calculate correlation"
             
-            # Get correlation threshold from config
+            # Debug: log the correlation value
+            logger.info(f"[DEBUG] Correlation value: {correlation}")
+            
+            # Restore correlation threshold check
             correlation_threshold = None
             for rule in self.config.entry_rules:
                 if rule.rule_type == 'Correlation' and rule.correlation_threshold:
                     correlation_threshold = rule.correlation_threshold
                     break
-            
             if correlation_threshold is None:
                 correlation_threshold = 0.7  # Default threshold
-            
-            # Check correlation threshold
             if correlation < correlation_threshold:
                 return False, f"Correlation {correlation:.2f} below threshold {correlation_threshold}"
             
-            # Check price conditions
+            # Get price conditions
             primary_price = primary_latest['close']
             correlated_price = correlated_latest['close']
             
@@ -351,7 +360,7 @@ class CorrelationStrategy:
             
             # Check buy conditions
             if primary_price > primary_sh and correlated_price < correlated_sl:
-                return True, f"Buy signal: Primary price {primary_price:.2f} > SH {primary_sh:.2f}, Correlated price {correlated_price:.2f} < SL {correlated_sl:.2f}"
+                return True, f"Buy signal: Primary price {primary_price:.2f} > SH {primary_sh:.2f}, Correlated price {correlated_price:.2f} < SL {correlated_sl:.2f} (correlation: {correlation:.2f})"
             
             return False, "Buy conditions not met"
         
@@ -388,14 +397,17 @@ class CorrelationStrategy:
             if correlation is None:
                 return False, "Failed to calculate correlation"
             
-            # Get correlation threshold from config
-            correlation_threshold = 0.7  # Default threshold
+            # Debug: log the correlation value
+            logger.info(f"[DEBUG] Correlation value: {correlation}")
+            
+            # Restore correlation threshold check
+            correlation_threshold = None
             for rule in self.config.entry_rules:
                 if rule.rule_type == 'Correlation' and rule.correlation_threshold:
                     correlation_threshold = rule.correlation_threshold
                     break
-            
-            # Check correlation threshold
+            if correlation_threshold is None:
+                correlation_threshold = 0.7  # Default threshold
             if correlation < correlation_threshold:
                 return False, f"Correlation {correlation:.2f} below threshold {correlation_threshold}"
             
@@ -411,7 +423,7 @@ class CorrelationStrategy:
             
             # Check sell conditions
             if primary_price < primary_sl and correlated_price > correlated_sh:
-                return True, f"Sell signal: Primary price {primary_price:.2f} < SL {primary_sl:.2f}, Correlated price {correlated_price:.2f} > SH {correlated_sh:.2f}"
+                return True, f"Sell signal: Primary price {primary_price:.2f} < SL {primary_sl:.2f}, Correlated price {correlated_price:.2f} > SH {correlated_sh:.2f} (correlation: {correlation:.2f})"
             
             return False, "Sell conditions not met"
         
@@ -419,16 +431,7 @@ class CorrelationStrategy:
             logger.error(f"Error checking sell conditions: {str(e)}")
             return False, f"Error: {str(e)}"
     
-    def generate_signal(self, config):
-        """
-        Generate trading signals based on correlation strategy.
-        
-        Args:
-            config: SignalConfig object
-            
-        Returns:
-            list: Generated signals
-        """
+    def generate_signal(self, config, check_duplicate_signals=None):
         session = self.Session()
         try:
             # Get symbols
@@ -436,68 +439,97 @@ class CorrelationStrategy:
             if not symbols:
                 logger.warning(f"No symbols found for config {config.name}")
                 return []
-            
             # Find primary and correlated symbols
             primary_symbol = next((s for s in symbols if s.is_primary), None)
             correlated_symbol = next((s for s in symbols if not s.is_primary), None)
-            
             if not primary_symbol or not correlated_symbol:
                 logger.warning("Missing primary or correlated symbol")
                 return []
-            
             # Get market data
-            primary_data = self.get_market_data(primary_symbol.symbol, primary_symbol.timeframe)
-            correlated_data = self.get_market_data(correlated_symbol.symbol, correlated_symbol.timeframe)
-            
+            primary_data = self.get_market_data(primary_symbol.symbol, primary_symbol.timeframe, lookback=25)
+            correlated_data = self.get_market_data(correlated_symbol.symbol, correlated_symbol.timeframe, lookback=25)
             if primary_data is None or correlated_data is None:
                 return []
-            
             signals = []
-            
             # Check for buy signals
             if config.signal_direction in ['Long', 'Both']:
                 buy_condition, buy_description = self.check_buy_conditions(primary_data, correlated_data)
                 if buy_condition:
-                    signal = GeneratedSignal(
-                        config_id=config.id,
-                        symbol=primary_symbol.symbol,
-                        token=primary_symbol.token,
-                        direction='Long',
-                        price=primary_data.iloc[-1]['close'],
-                        timeframe=primary_symbol.timeframe,
-                        status='New'
-                    )
-                    session.add(signal)
-                    signals.append(signal)
-                    logger.info(f"Generated buy signal: {buy_description}")
-            
+                    # Prevent duplicate signals
+                    duplicate = False
+                    if check_duplicate_signals:
+                        duplicate = check_duplicate_signals(
+                            config, primary_symbol.symbol, 'Long', primary_data.iloc[-1]['close'], primary_symbol.timeframe
+                        )
+                    else:
+                        # Fallback: check in DB for same config/symbol/direction/price/timeframe in last 15min
+                        cutoff_time = datetime.utcnow() - timedelta(minutes=15)
+                        existing = session.query(GeneratedSignal).filter(
+                            GeneratedSignal.config_id == config.id,
+                            GeneratedSignal.symbol == primary_symbol.symbol,
+                            GeneratedSignal.direction == 'Long',
+                            GeneratedSignal.price == primary_data.iloc[-1]['close'],
+                            GeneratedSignal.timeframe == primary_symbol.timeframe,
+                            GeneratedSignal.signal_time > cutoff_time
+                        ).first()
+                        duplicate = existing is not None
+                    if not duplicate:
+                        signal = GeneratedSignal(
+                            config_id=config.id,
+                            symbol=primary_symbol.symbol,
+                            token=primary_symbol.token,
+                            direction='Long',
+                            price=primary_data.iloc[-1]['close'],
+                            timeframe=primary_symbol.timeframe,
+                            status='New'
+                        )
+                        session.add(signal)
+                        signals.append(signal)
+                        logger.info(f"Generated buy signal: {buy_description}")
+                    else:
+                        logger.info(f"Duplicate buy signal detected, skipping.")
             # Check for sell signals
             if config.signal_direction in ['Short', 'Both']:
                 sell_condition, sell_description = self.check_sell_conditions(primary_data, correlated_data)
                 if sell_condition:
-                    signal = GeneratedSignal(
-                        config_id=config.id,
-                        symbol=primary_symbol.symbol,
-                        token=primary_symbol.token,
-                        direction='Short',
-                        price=primary_data.iloc[-1]['close'],
-                        timeframe=primary_symbol.timeframe,
-                        status='New'
-                    )
-                    session.add(signal)
-                    signals.append(signal)
-                    logger.info(f"Generated sell signal: {sell_description}")
-            
+                    duplicate = False
+                    if check_duplicate_signals:
+                        duplicate = check_duplicate_signals(
+                            config, primary_symbol.symbol, 'Short', primary_data.iloc[-1]['close'], primary_symbol.timeframe
+                        )
+                    else:
+                        cutoff_time = datetime.utcnow() - timedelta(minutes=15)
+                        existing = session.query(GeneratedSignal).filter(
+                            GeneratedSignal.config_id == config.id,
+                            GeneratedSignal.symbol == primary_symbol.symbol,
+                            GeneratedSignal.direction == 'Short',
+                            GeneratedSignal.price == primary_data.iloc[-1]['close'],
+                            GeneratedSignal.timeframe == primary_symbol.timeframe,
+                            GeneratedSignal.signal_time > cutoff_time
+                        ).first()
+                        duplicate = existing is not None
+                    if not duplicate:
+                        signal = GeneratedSignal(
+                            config_id=config.id,
+                            symbol=primary_symbol.symbol,
+                            token=primary_symbol.token,
+                            direction='Short',
+                            price=primary_data.iloc[-1]['close'],
+                            timeframe=primary_symbol.timeframe,
+                            status='New'
+                        )
+                        session.add(signal)
+                        signals.append(signal)
+                        logger.info(f"Generated sell signal: {sell_description}")
+                    else:
+                        logger.info(f"Duplicate sell signal detected, skipping.")
             if signals:
                 session.commit()
-            
             return signals
-        
         except Exception as e:
             logger.error(f"Error generating signals: {str(e)}")
             session.rollback()
             return []
-        
         finally:
             session.close()
 

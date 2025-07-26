@@ -480,6 +480,17 @@ class MarketDataService:
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to get corporate actions: {str(e)}")
 
+    def get_account_equity(self) -> float:
+        """Fetch the real account equity (NetLiquidation) from IBKR."""
+        try:
+            account = self._ib.accountSummary()
+            net_liquidation = float(next((item.value for item in account if item.tag == 'NetLiquidation'), 0))
+            if net_liquidation <= 0:
+                raise HTTPException(status_code=400, detail="Account equity not available or zero.")
+            return net_liquidation
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to fetch account equity: {str(e)}")
+
     def __del__(self):
         """Cleanup IBKR connection and subscriptions"""
         if self._ib and self._ib.isConnected():

@@ -28,6 +28,7 @@ import RiskSettings from './pages/risk/RiskSettings';
 
 // Reporting Pages
 import DealsReport from './pages/reporting/DealsReport';
+import PnLReport from './pages/reporting/PnLReport';
 
 // Additional Pages
 import Performance from './pages/performance/Performance';
@@ -70,6 +71,7 @@ function App() {
                 </Route>
                 <Route path="reports">
                   <Route path="deals" element={<DealsReport />} />
+                  <Route path="pnl" element={<PnLReport />} />
                 </Route>
                 <Route path="performance" element={<Performance />} />
                 <Route path="markets" element={<Markets />} />

@@ -9,6 +9,7 @@ import {
   LayoutDashboard, 
   LineChart, 
   Settings,
+  FileText,
   TrendingUp, 
   Users
 } from 'lucide-react';
@@ -73,6 +74,15 @@ const Sidebar = ({ open, setOpen }: SidebarProps) => {
       name: 'History',
       icon: <Clock size={20} />,
       path: '/history',
+    },
+    {
+      name: 'Reports',
+      icon: <FileText size={20} />,
+      path: '/reports',
+      children: [
+        { name: 'Deals Report', path: '/reports/deals' },
+        { name: 'P&L Report', path: '/reports/pnl' },
+      ],
     },
   ];
   

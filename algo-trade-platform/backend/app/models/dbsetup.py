@@ -329,6 +329,52 @@ def setup_database():
                     compress_after => INTERVAL '7 days');
             """)
 
+        print("✅ Creating trades table...")
+        cur.execute("""
+            CREATE TABLE trades (
+                id SERIAL PRIMARY KEY,
+                user_id INT NOT NULL,
+                strategy_id INT NOT NULL,
+                signal_id INT,
+                symbol TEXT NOT NULL,
+                exchange TEXT NOT NULL,
+                side TEXT NOT NULL,
+                quantity INT NOT NULL CHECK (quantity > 0),
+                entry_price DOUBLE PRECISION NOT NULL CHECK (entry_price > 0),
+                exit_price DOUBLE PRECISION CHECK (exit_price > 0),
+                stop_loss DOUBLE PRECISION CHECK (stop_loss > 0),
+                take_profit DOUBLE PRECISION CHECK (take_profit > 0),
+                status TEXT NOT NULL,
+                pnl DOUBLE PRECISION,
+                created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+                closed_at TIMESTAMPTZ,
+                is_active BOOLEAN DEFAULT true,
+                UNIQUE (user_id, strategy_id, symbol, created_at),
+                FOREIGN KEY (user_id) REFERENCES users(id),
+                FOREIGN KEY (strategy_id) REFERENCES strategies(id),
+                FOREIGN KEY (signal_id) REFERENCES signal_generation(id)
+            );
+        """)
+
+        print("✅ Creating risk_settings table...")
+        cur.execute("""
+            CREATE TABLE risk_settings (
+                id SERIAL PRIMARY KEY,
+                user_id INT,
+                strategy_id INT,
+                max_active_trades INT NOT NULL DEFAULT 10,
+                max_trades_per_day INT NOT NULL DEFAULT 20,
+                max_risk_per_trade_pct DOUBLE PRECISION NOT NULL DEFAULT 0.02,
+                max_total_risk_pct DOUBLE PRECISION NOT NULL DEFAULT 0.05,
+                created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE (user_id, strategy_id),
+                FOREIGN KEY (user_id) REFERENCES users(id),
+                FOREIGN KEY (strategy_id) REFERENCES strategies(id)
+            );
+        """)
+
         print("✅ TimescaleDB setup completed successfully!")
 
     except Exception as e:

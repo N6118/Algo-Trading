@@ -214,96 +214,83 @@ This document outlines the comprehensive plan for building an algorithmic tradin
 
 ## 5. Trade Management
 
-- [ ] Implement trade management framework
-  - [ ] Create trade management database tables
-  - [ ] Implement trade management service
-  - [ ] Setup 5-second monitoring interval for stop-loss and profit targets
+- [x] Create trade management database tables
+  - [x] Implement trade management service
+  - [x] Setup 5-second monitoring interval for stop-loss and profit targets
 
 ### 5.1 Before Initiating Trade
 
-- [ ] Implement pre-trade checks and calculations
-  - [ ] Number of Active trades
-  - [ ] Number of Trades per day
-  - [ ] PDT rule check (< $25,000 equity and ≥ 4 day-trades in 5 business days)
-  - [ ] TM-IProfit (Initial profit target)
-  - [ ] TM-Isp (Initial stop-loss price)
-  - [ ] Account risk percentage (should be less than RM-Max-sp-per-trade%)
-  - [ ] Calculate number of shares based on risk parameters
-  - [ ] Calculate trade risk
-  - [ ] Calculate total risk percentage
-  - [ ] Adjust stop loss based on calculations
-  - [ ] Calculate Reg-T margin and overnight buying power usage
+- [x] Implement pre-trade checks and calculations for trade management: (1) Number of active trades, (2) Number of trades per day, (3) PDT rule check, (4) Initial profit target, (5) Initial stop-loss price, (6) Account risk percentage, (7) Calculate number of shares based on risk, (8) Calculate trade risk, (9) Calculate total risk percentage, (10) Adjust stop loss, (11) Calculate Reg-T margin and overnight buying power usage.
+- [x] Implement logic to enforce pre-trade checks before any trade is placed, integrating with the order/trade creation flow.
+- [x] Integrate order placement (via OrderService) into trade creation flow; only persist trade if order is successfully placed.
+- [x] Use explicit DB transactions for trade creation and order placement to ensure atomicity.
+- [x] Refactor error handling in TradeService to use custom exception classes for risk, compliance, and technical errors.
+- [x] Enhance TradeManagementService monitoring: add time-based trade closure, exit rule monitoring, and dynamic stop-loss adjustment (trailing stops, risk reduction).
 
 ### 5.2 Risk Management
 
-- [ ] Implement risk management system
-  - [ ] RM-Max-sp-per-trade (Maximum stop-loss price per trade)
-  - [ ] RM-Max-sp-per-trade% (Maximum stop-loss percentage per trade)
-  - [ ] RM-Max-sp (Maximum stop-loss across all trades)
-  - [ ] RM-Max-sp% (Maximum stop-loss percentage across all trades - account drawdown limit)
-  - [ ] Capital Utilized% (auto-calculated based on daily trades)
-  - [ ] Position% (auto-calculated based on daily trades)
+- [x] Make risk parameters (max trades, max risk %, etc.) configurable per user/account/strategy, not hardcoded.
 
 ### 5.3 Risk Reduction
 
-- [ ] Implement risk reduction for profitable trades
-  - [ ] Track Entry-Price
-  - [ ] Track Current-Price
-  - [ ] Track Current-Stop-Loss (current stop-loss price)
-  - [ ] Implement RR-Trigger mechanism
-  - [ ] Calculate and execute Qty-Sell for risk reduction
+- [x] Implement risk reduction for profitable trades
+  - [x] Track Entry-Price
+  - [x] Track Current-Price
+  - [x] Track Current-Stop-Loss (current stop-loss price)
+  - [x] Implement RR-Trigger mechanism
+  - [x] Calculate and execute Qty-Sell for risk reduction
 
 ### 5.4 After Initiating Trade
 
-- [ ] Implement trade monitoring system
-  - [ ] Monitor stop loss conditions every 5 seconds
-  - [ ] Monitor profit target conditions every 5 seconds
-  - [ ] Monitor exit rule conditions
-  - [ ] Implement time-based trade closure (close all running trades at specified time)
+- [x] Implement trade monitoring system
+  - [x] Monitor stop loss conditions every 5 seconds
+  - [x] Monitor profit target conditions every 5 seconds
+  - [x] Monitor exit rule conditions
+  - [x] Implement time-based trade closure (close all running trades at specified time)
 
 ### 5.5 Progressive P&L Tracking
 
-- [ ] Implement P&L tracking
-  - [ ] Calculate P&L for closed trades
-  - [ ] Update RM-Max-sp based on P&L
-  - [ ] Adjust stop loss based on risk reduction
-  - [ ] Adjust stop loss based on account risk percentage
-  - [ ] Ensure total P&L% is less than RM-Max-sp% (account drawdown limit)
+- [x] Implement P&L tracking
+  - [x] Calculate P&L for closed trades
+  - [x] Update RM-Max-sp based on P&L
+  - [x] Adjust stop loss based on risk reduction
+  - [x] Adjust stop loss based on account risk percentage
+  - [x] Ensure total P&L% is less than RM-Max-sp% (account drawdown limit)
 
 ## 6. Trade Status
 
-- [ ] Implement trade status tracking
-  - [ ] Last signal (Long/Short)
-  - [ ] Trade Status (Running/Closed/Waiting)
-  - [ ] Order status (Initiated/placed/pending/Success/Failed)
+- [x] Implement trade status tracking
+  - [x] Last signal (Long/Short)
+  - [x] Trade Status (Running/Closed/Waiting)
+  - [x] Order status (Initiated/placed/pending/Success/Failed)
 
 ## 7. Deals Report
 
-- [ ] Implement deals reporting system
-  - [ ] Strategy Name
-  - [ ] SS-Type
-  - [ ] SS-signal-Type
-  - [ ] Symbol name
-  - [ ] Quantity (Entry Qty, Exit Qty)
-  - [ ] Price (Entry Price, Exit Price)
-  - [ ] P&L
-  - [ ] Charges
-  - [ ] Net P&L
-  - [ ] Net P&L%
-  - [ ] Date (Entry Date, Exit Date)
-  - [ ] Status (Running, Completed)
-  - [ ] Comments (How trade got closed, e.g., Stop-loss, Profit, Exit-rule)
+- [x] Implement deals reporting system
+  - [x] Strategy Name
+  - [x] SS-Type
+  - [x] SS-signal-Type
+  - [x] Symbol name
+  - [x] Quantity (Entry Qty, Exit Qty)
+  - [x] Price (Entry Price, Exit Price)
+  - [x] P&L
+  - [x] Charges
+  - [x] Net P&L
+  - [x] Net P&L%
+  - [x] Date (Entry Date, Exit Date)
+  - [x] Status (Running, Completed)
+  - [x] Comments (How trade got closed, e.g., Stop-loss, Profit, Exit-rule)
 
 ## 8. Universal Settings
 
-- [ ] Implement universal settings management
-  - [ ] Capital
-  - [ ] Open-Time (default 09:30 ET, stored in UTC)
-  - [ ] Close-Time (default 16:00 ET, stored in UTC)
-  - [ ] Pre-Market (04:00-09:30 ET)
-  - [ ] Post-Market (16:00-20:00 ET)
-  - [ ] Holiday calendar lookup (NYSE schedule + half-days)
-  - [ ] SS-option category-Split (e.g., 200 to 100 - ITM for CALL/PUT)
+- [x] Implement universal settings management
+  - [x] Capital
+  - [x] Open-Time (default 09:30 ET, stored in UTC)
+  - [x] Close-Time (default 16:00 ET, stored in UTC)
+  - [x] Pre-Market (04:00-09:30 ET)
+  - [x] Post-Market (16:00-20:00 ET)
+  - [x] Holiday calendar lookup (NYSE schedule + half-days)
+  - [x] SS-option category-Split (e.g., 200 to 100 - ITM for CALL/PUT)
 
 ## 9. API Integration
 
@@ -365,42 +352,3 @@ This document outlines the comprehensive plan for building an algorithmic tradin
    - [ ] Create deals reporting for the strategy
    - [ ] Implement Reg-T margin compliance
 
-## Next Steps
-
-1. ✅ Implement the correlation strategy framework as a proof of concept
-2. ✅ Complete Signal Scanning (SS) implementation
-3. ✅ Develop Trade Management framework with 5-second monitoring
-4. ✅ Integrate Order Execution APIs
-5. ✅ Build user interface for monitoring and configuration
-6. ✅ Implement U.S. market regulatory compliance (PDT, Reg-T, SEC 17a-4)
-
-## Recent Updates
-
-1. Added Polygon.io fail-over feed implementation
-2. Implemented comprehensive system monitoring
-3. Added latency tracking and analysis
-4. Enhanced error handling and reconnection logic
-5. Added data validation and sanitization
-6. Added timezone handling for market data
-7. Implemented data gap detection
-8. Added outlier detection using z-scores
-9. Added pre/post market hours validation
-10. Implemented retry mechanism for database operations
-11. Added connection pooling for better performance
-12. Added duplicate signal detection
-13. Implemented cleanup of old signals
-14. Added multiple correlation methods support
-15. Enhanced market hours validation
-
-## Next Implementation Tasks
-
-1. Implement data archiving for SEC 17a-4 compliance
-2. Add 30-minute timeframe data aggregation
-3. Implement futures contract roll logic
-4. Develop signal scanning framework
-5. Create trade management system
-6. Add performance monitoring and metrics collection
-7. Implement automated testing suite
-8. Add API documentation
-9. Set up monitoring and alerting system
-10. Implement user interface for configuration and monitoring

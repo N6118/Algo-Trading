@@ -20,6 +20,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import QueuePool
 from urllib.parse import quote_plus as urlquote
 from tenacity import retry, stop_after_attempt, wait_exponential
+from sqlalchemy.orm import joinedload
 
 # Add the project root to the Python path
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
@@ -103,10 +104,10 @@ class SignalScanner:
             
             # Map timeframe to table name
             timeframe_map = {
-                '5min': 'five_min_data',
-                '15min': 'fifteen_min_data',
-                '30min': 'thirty_min_data',
-                '1h': 'one_hour_data'
+                '5min': 'stock_ohlc_5min',
+                '15min': 'tbl_ohlc_fifteen_output',  # or 'stock_ohlc_15min' if you want raw OHLC
+                '30min': 'tbl_ohlc_thirty_output',   # if you have this
+                '1h': 'stock_ohlc_60min'
             }
             
             table_name = timeframe_map.get(timeframe)
@@ -143,6 +144,7 @@ class SignalScanner:
                 logger.warning(f"Missing values found in data for {symbol}")
                 return None
             
+            # Remove timezone conversion logic here; handled in correlation_strategy.py
             return df
         
         except Exception as e:
@@ -310,6 +312,15 @@ class SignalScanner:
         """
         session = self.Session()
         try:
+            # Eagerly load all relationships for config
+            config = session.query(SignalConfig)\
+                .options(
+                    joinedload(SignalConfig.entry_rules),
+                    joinedload(SignalConfig.symbols),
+                    joinedload(SignalConfig.exit_rules)
+                )\
+                .filter(SignalConfig.id == config.id).first()
+            
             # Check if we should run this config
             if not self.should_run_config(config):
                 return []
@@ -395,11 +406,11 @@ class SignalScanner:
                 logger.info(f"Market holiday for config {config.name}")
                 return False
             
-            # Check for pre/post market hours
-            pre_market_start = et.localize(datetime.strptime('04:00', '%H:%M').time())
-            post_market_end = et.localize(datetime.strptime('20:00', '%H:%M').time())
-            
-            if current_dt.time() < pre_market_start or current_dt.time() > post_market_end:
+            # Pre/post market hours as datetime
+            pre_market_start_dt = et.localize(datetime.combine(current_time.date(), datetime.strptime('04:00', '%H:%M').time()))
+            post_market_end_dt = et.localize(datetime.combine(current_time.date(), datetime.strptime('20:00', '%H:%M').time()))
+
+            if not (pre_market_start_dt <= current_dt <= post_market_end_dt):
                 logger.info(f"Outside pre/post market hours for config {config.name}")
                 return False
             
