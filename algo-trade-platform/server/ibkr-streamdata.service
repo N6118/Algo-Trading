@@ -1,0 +1,25 @@
+[Unit]
+Description=IBKR Streamdata Service with Telegram Notifications
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=anurag
+WorkingDirectory=/home/anurag/Desktop/Algo-Trading/algo-trade-platform
+ExecStart=/usr/bin/python3 /home/anurag/Desktop/Algo-Trading/algo-trade-platform/backend/app/data/start_streamdata.py
+Restart=always
+RestartSec=15
+StandardOutput=journal
+StandardError=journal
+Environment=TELEGRAM_BOT_TOKEN=8161925605:AAEFvQtiTmnjUnLiR1BAfVnxVfu8aOg-Yhk
+Environment=TELEGRAM_CHAT_ID=US-stocks.Jr
+Environment=PYTHONPATH=/home/anurag/Desktop/Algo-Trading/algo-trade-platform
+
+# Graceful shutdown
+KillMode=mixed
+KillSignal=SIGTERM
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target 
