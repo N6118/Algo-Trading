@@ -103,13 +103,6 @@ class Custom15MinAggregator:
                 insert_query = """
                     INSERT INTO stock_ohlc_15min (created, token, symbol, open, high, low, close, volume)
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-                    ON CONFLICT ON CONSTRAINT stock_ohlc_15min_created_token_symbol_key
-                    DO UPDATE SET
-                        open = EXCLUDED.open,
-                        high = EXCLUDED.high,
-                        low = EXCLUDED.low,
-                        close = EXCLUDED.close,
-                        volume = EXCLUDED.volume
                 """
                 
                 row = df.iloc[0]
