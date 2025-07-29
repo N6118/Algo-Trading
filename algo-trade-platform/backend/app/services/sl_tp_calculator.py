@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 
 # Database configuration
 DB_PASSWORD = "password"
-DB_URI = f"postgresql://postgres:{quote_plus(DB_PASSWORD)}@100.121.186.86:5432/theodb"
+DB_URI = f"postgresql://postgres:{quote_plus(DB_PASSWORD)}@localhost:5432/theodb"
 
 # Default config values (same as attempt.py)
 DEFAULT_CONFIG = {
