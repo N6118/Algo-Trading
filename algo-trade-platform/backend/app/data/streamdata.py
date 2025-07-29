@@ -86,23 +86,44 @@ class IBapi(EWrapper, EClient):
             conn = pool.getconn()
             with conn.cursor() as cur:
                 try:
-                    # Insert or update contract details
+                    # Check if we have a placeholder record (conId = 0) for this symbol
                     cur.execute("""
-                        INSERT INTO ibkr_contracts (conid, symbol, sec_type, exchange, currency, last_updated)
-                        VALUES (%s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
-                        ON CONFLICT (conid) DO UPDATE SET
-                            symbol = EXCLUDED.symbol,
-                            sec_type = EXCLUDED.sec_type,
-                            exchange = EXCLUDED.exchange,
-                            currency = EXCLUDED.currency,
-                            last_updated = CURRENT_TIMESTAMP;
-                    """, (
-                        contractDetails.contract.conId,
-                        contractDetails.contract.symbol,
-                        contractDetails.contract.secType,
-                        contractDetails.contract.exchange,
-                        contractDetails.contract.currency
-                    ))
+                        SELECT conid FROM ibkr_contracts 
+                        WHERE symbol = %s AND exchange = %s AND conid = 0
+                    """, (contractDetails.contract.symbol, contractDetails.contract.exchange))
+                    
+                    placeholder_exists = cur.fetchone()
+                    
+                    if placeholder_exists:
+                        # Update the placeholder record with the real conId
+                        cur.execute("""
+                            UPDATE ibkr_contracts 
+                            SET conid = %s, last_updated = CURRENT_TIMESTAMP
+                            WHERE symbol = %s AND exchange = %s AND conid = 0
+                        """, (
+                            contractDetails.contract.conId,
+                            contractDetails.contract.symbol,
+                            contractDetails.contract.exchange
+                        ))
+                    else:
+                        # Insert or update contract details
+                        cur.execute("""
+                            INSERT INTO ibkr_contracts (conid, symbol, sec_type, exchange, currency, last_updated)
+                            VALUES (%s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+                            ON CONFLICT (conid) DO UPDATE SET
+                                symbol = EXCLUDED.symbol,
+                                sec_type = EXCLUDED.sec_type,
+                                exchange = EXCLUDED.exchange,
+                                currency = EXCLUDED.currency,
+                                last_updated = CURRENT_TIMESTAMP;
+                        """, (
+                            contractDetails.contract.conId,
+                            contractDetails.contract.symbol,
+                            contractDetails.contract.secType,
+                            contractDetails.contract.exchange,
+                            contractDetails.contract.currency
+                        ))
+                    
                     conn.commit()
                     
                     # Update our mappings
