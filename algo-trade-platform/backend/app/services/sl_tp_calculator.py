@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 
 # Database configuration
 DB_PASSWORD = "password"
-DB_URI = f"postgresql://postgres:{quote_plus(DB_PASSWORD)}@localhost:5432/theodb"
+DB_URI = os.getenv('DB_URI', f"postgresql://postgres:{quote_plus(DB_PASSWORD)}@localhost:5432/theodb")
 
 # Default config values (same as attempt.py)
 DEFAULT_CONFIG = {
@@ -96,6 +96,18 @@ class SLTPCalculator:
     def get_latest_15min_data(self, symbol, limit=100):
         """Get latest 15-minute OHLC data for a symbol"""
         try:
+            # First, try to refresh the continuous aggregate to ensure we have the latest data
+            try:
+                refresh_query = """
+                    CALL refresh_continuous_aggregate('stock_ohlc_15min', NOW() - INTERVAL '1 hour', NOW());
+                """
+                with self.connection.cursor() as cur:
+                    cur.execute(refresh_query)
+                    self.connection.commit()
+                logger.info(f"✅ Refreshed continuous aggregate for {symbol}")
+            except Exception as e:
+                logger.warning(f"⚠️ Could not refresh continuous aggregate: {e}")
+            
             query = """
                 SELECT created, token, symbol, open, high, low, close, volume
                 FROM stock_ohlc_15min 
