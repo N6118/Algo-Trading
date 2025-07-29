@@ -101,12 +101,16 @@ class SLTPCalculator:
                 refresh_query = """
                     CALL refresh_continuous_aggregate('stock_ohlc_15min', NOW() - INTERVAL '1 hour', NOW());
                 """
+                # Execute outside of any transaction
                 with self.connection.cursor() as cur:
+                    cur.execute("COMMIT")  # End any existing transaction
                     cur.execute(refresh_query)
                     self.connection.commit()
                 logger.info(f"✅ Refreshed continuous aggregate for {symbol}")
             except Exception as e:
                 logger.warning(f"⚠️ Could not refresh continuous aggregate: {e}")
+                # Reset connection state
+                self.connection.rollback()
             
             query = """
                 SELECT created, token, symbol, open, high, low, close, volume
