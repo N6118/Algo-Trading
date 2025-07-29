@@ -7,7 +7,7 @@ Wants=network.target
 Type=simple
 User=anurag
 WorkingDirectory=/home/anurag/Desktop/Algo-Trading/algo-trade-platform
-ExecStart=/usr/bin/python3 /home/anurag/Desktop/Algo-Trading/algo-trade-platform/backend/app/data/start_streamdata.py
+ExecStart=/home/anurag/Desktop/Algo-Trading/algo-trade-platform/backend/app/data/venv/bin/python /home/anurag/Desktop/Algo-Trading/algo-trade-platform/backend/app/data/start_streamdata.py
 Restart=always
 RestartSec=15
 StandardOutput=journal
@@ -15,6 +15,8 @@ StandardError=journal
 Environment=TELEGRAM_BOT_TOKEN=8161925605:AAEFvQtiTmnjUnLiR1BAfVnxVfu8aOg-Yhk
 Environment=TELEGRAM_CHAT_ID=US-stocks.Jr
 Environment=PYTHONPATH=/home/anurag/Desktop/Algo-Trading/algo-trade-platform
+Environment=VIRTUAL_ENV=/home/anurag/Desktop/Algo-Trading/algo-trade-platform/backend/app/data/venv
+Environment=PATH=/home/anurag/Desktop/Algo-Trading/algo-trade-platform/backend/app/data/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
 # Graceful shutdown
 KillMode=mixed
