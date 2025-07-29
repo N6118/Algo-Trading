@@ -55,7 +55,7 @@ class CorrelationStrategy:
         try:
             password = os.getenv("DB_PASSWORD", "password")
             encoded_password = urlquote(password)
-            uri = os.getenv("DB_URI", f"postgresql://postgres:{encoded_password}@100.121.186.86:5432/theodb")
+            uri = os.getenv("DB_URI", f"postgresql://postgres:{encoded_password}@localhost:5432/theodb")
             
             self.engine = create_engine(uri)
             self.Session = sessionmaker(bind=self.engine)
