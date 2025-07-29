@@ -3,14 +3,15 @@ Description=Algo Trading Strategy Service
 After=network.target postgresql.service
 
 [Service]
-User=root
-WorkingDirectory=/path/to/algo-trade-platform
-ExecStart=/usr/bin/python3 /path/to/algo-trade-platform/backend/app/strategies/Stocks/attempt.py
+User=anurag
+WorkingDirectory=/home/anurag/Desktop/Algo-Trading/algo-trade-platform
+ExecStart=/home/anurag/Desktop/Algo-Trading/algo-trade-platform/venv/bin/python /home/anurag/Desktop/Algo-Trading/algo-trade-platform/backend/app/strategies/Stocks/attempt.py
 Restart=always
 RestartSec=10
 Environment=DB_PASSWORD=password
-Environment=CONFIG_PATH=/path/to/algo-trade-platform/config/config.json
-Environment=PYTHONPATH=/path/to/algo-trade-platform
+Environment=CONFIG_PATH=/home/anurag/Desktop/Algo-Trading/algo-trade-platform/config/config.json
+Environment=PYTHONPATH=/home/anurag/Desktop/Algo-Trading/algo-trade-platform
+Environment=DB_URI=postgresql://postgres:password@100.121.186.86:5432/theodb
 
 [Install]
 WantedBy=multi-user.target
