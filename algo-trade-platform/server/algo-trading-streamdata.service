@@ -6,9 +6,10 @@ Requires=ibkr-ibc.service
 [Service]
 User=anurag
 WorkingDirectory=/home/anurag/Desktop/Algo-Trading/algo-trade-platform
+ExecStartPre=/bin/sleep 60
 ExecStart=/home/anurag/Desktop/Algo-Trading/algo-trade-platform/backend/app/data/venv/bin/python /home/anurag/Desktop/Algo-Trading/algo-trade-platform/backend/app/data/streamdata.py
 Restart=always
-RestartSec=10
+RestartSec=30
 Environment=DB_PASSWORD=password
 Environment=PYTHONPATH=/home/anurag/Desktop/Algo-Trading/algo-trade-platform
 Environment=VIRTUAL_ENV=/home/anurag/Desktop/Algo-Trading/algo-trade-platform/backend/app/data/venv

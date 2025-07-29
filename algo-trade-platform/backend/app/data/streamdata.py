@@ -57,7 +57,7 @@ class IBapi(EWrapper, EClient):
         self.contract_details = {}  # symbol -> conId mapping
         self.reqId_map = {}  # reqId -> (symbol, conId) mapping
         self.connected = False
-        self.connection_timeout = 10  # seconds to wait for connection
+        self.connection_timeout = 120  # seconds to wait for connection (2 minutes for 2FA)
         self.first_entry_sent = False  # Track if first entry notification was sent
         self.last_entry_data = None  # Store last entry data for shutdown notification
 
@@ -342,81 +342,109 @@ class IBapi(EWrapper, EClient):
 
 def run_ibkr():
     """Start IBKR API loop in a separate thread."""
-    app_ibkr = IBapi()
+    max_retries = 5
+    retry_delay = 30  # Start with 30 seconds
     
-    # Send server start notification
-    send_server_start_notification()
-    
-    # Start futures roll manager
-    futures_roll_manager.start()
-    
-    # Attempt to connect to TWS
-    try:
-        logging.info(f"📡 Connecting to TWS at {TWS_HOST}:{TWS_PORT}...")
-        app_ibkr.connect(TWS_HOST, TWS_PORT, TWS_CLIENT_ID)
+    for attempt in range(max_retries):
+        app_ibkr = IBapi()
         
-        # Wait for connection to be established
-        if not app_ibkr.wait_for_connection():
-            error_msg = "Failed to connect to TWS within timeout period"
-            logging.error(f"❌ {error_msg}")
-            send_connection_status("error", error_msg)
-            raise Exception(error_msg)
-            
-        api_thread = threading.Thread(target=app_ibkr.run, daemon=True)
-        api_thread.start()
-        time.sleep(1)  # Allow time for connection
-
-        # Get active contracts from database
-        contracts = app_ibkr.get_active_contracts()
+        # Send server start notification on first attempt
+        if attempt == 0:
+            send_server_start_notification()
         
-        # If no contracts in database, add VIX as default
-        if not contracts:
-            logging.info("No contracts in database, adding VIX as default")
-            vix_contract = Contract()
-            vix_contract.symbol = 'VIX'
-            vix_contract.secType = 'IND'
-            vix_contract.exchange = 'CBOE'
-            vix_contract.currency = 'USD'
-            contracts = [vix_contract]
-
-        # Request contract details and market data for each contract
-        for i, contract in enumerate(contracts):
-            # Request contract details to get/update conId
-            app_ibkr.reqContractDetails(i+1, contract)
-            time.sleep(0.1)  # Small delay between requests
+        # Start futures roll manager
+        futures_roll_manager.start()
+        
+        # Attempt to connect to TWS
+        try:
+            logging.info(f"📡 Connecting to TWS at {TWS_HOST}:{TWS_PORT}... (Attempt {attempt + 1}/{max_retries})")
+            app_ibkr.connect(TWS_HOST, TWS_PORT, TWS_CLIENT_ID)
             
-            # Request market data
-            app_ibkr.reqMarketDataType(3)  # 3 = Delayed Data
-            app_ibkr.reqMktData(i+1, contract, "233", False, False, [])
-            time.sleep(0.1)  # Small delay between requests
+            # Wait for connection to be established
+            if not app_ibkr.wait_for_connection():
+                error_msg = f"Failed to connect to TWS within timeout period (Attempt {attempt + 1}/{max_retries})"
+                logging.error(f"❌ {error_msg}")
+                send_connection_status("error", error_msg)
+                
+                # Clean up and retry
+                if app_ibkr.isConnected():
+                    app_ibkr.disconnect()
+                futures_roll_manager.stop()
+                
+                if attempt < max_retries - 1:
+                    logging.info(f"🔄 Retrying in {retry_delay} seconds...")
+                    time.sleep(retry_delay)
+                    retry_delay = min(retry_delay * 2, 300)  # Exponential backoff, max 5 minutes
+                    continue
+                else:
+                    raise Exception("Max retries exceeded")
+            
+                    api_thread = threading.Thread(target=app_ibkr.run, daemon=True)
+            api_thread.start()
+            time.sleep(1)  # Allow time for connection
 
-        logging.info("📌 IBKR Market Data Collection Running...")
-        while True:
-            if not app_ibkr.connected:
-                logging.error("❌ Lost connection to TWS")
+            # Get active contracts from database
+            contracts = app_ibkr.get_active_contracts()
+            
+            # If no contracts in database, add VIX as default
+            if not contracts:
+                logging.info("No contracts in database, adding VIX as default")
+                vix_contract = Contract()
+                vix_contract.symbol = 'VIX'
+                vix_contract.secType = 'IND'
+                vix_contract.exchange = 'CBOE'
+                vix_contract.currency = 'USD'
+                contracts = [vix_contract]
+
+            # Request contract details and market data for each contract
+            for i, contract in enumerate(contracts):
+                # Request contract details to get/update conId
+                app_ibkr.reqContractDetails(i+1, contract)
+                time.sleep(0.1)  # Small delay between requests
+                
+                # Request market data
+                app_ibkr.reqMarketDataType(3)  # 3 = Delayed Data
+                app_ibkr.reqMktData(i+1, contract, "233", False, False, [])
+                time.sleep(0.1)  # Small delay between requests
+
+            logging.info("📌 IBKR Market Data Collection Running...")
+            while True:
+                if not app_ibkr.connected:
+                    logging.error("❌ Lost connection to TWS")
+                    break
+                time.sleep(1)
+            
+            # If we get here, connection was successful
+            break
+                
+        except Exception as e:
+            logging.error(f"❌ Failed to connect to TWS: {e}")
+            send_connection_status("error", str(e))
+            
+            # Clean up and retry
+            if app_ibkr.isConnected():
+                app_ibkr.disconnect()
+            futures_roll_manager.stop()
+            
+            if attempt < max_retries - 1:
+                logging.info(f"🔄 Retrying in {retry_delay} seconds...")
+                time.sleep(retry_delay)
+                retry_delay = min(retry_delay * 2, 300)  # Exponential backoff, max 5 minutes
+                continue
+            else:
+                # Final cleanup on last attempt
+                if app_ibkr.last_entry_data:
+                    send_last_entry_notification(
+                        app_ibkr.last_entry_data['symbol'],
+                        app_ibkr.last_entry_data['price'],
+                        app_ibkr.last_entry_data['volume']
+                    )
+                send_server_stop_notification()
+                futures_roll_manager.stop()
+                if app_ibkr.isConnected():
+                    logging.warning("❌ Stopping IBKR...")
+                    app_ibkr.disconnect()
                 break
-            time.sleep(1)
-            
-    except Exception as e:
-        logging.error(f"❌ Failed to connect to TWS: {e}")
-        send_connection_status("error", str(e))
-    finally:
-        # Send last entry notification if we have data
-        if app_ibkr.last_entry_data:
-            send_last_entry_notification(
-                app_ibkr.last_entry_data['symbol'],
-                app_ibkr.last_entry_data['price'],
-                app_ibkr.last_entry_data['volume']
-            )
-        
-        # Send server stop notification
-        send_server_stop_notification()
-        
-        # Stop futures roll manager
-        futures_roll_manager.stop()
-        if app_ibkr.isConnected():
-            logging.warning("❌ Stopping IBKR...")
-            app_ibkr.disconnect()
 
 # Database Operations
 def insert_tick(token, symbol, ts, price, volume):
