@@ -13,8 +13,8 @@ Environment=DB_PASSWORD=password
 Environment=PYTHONPATH=/home/anurag/Desktop/Algo-Trading/algo-trade-platform
 Environment=VIRTUAL_ENV=/home/anurag/Desktop/Algo-Trading/algo-trade-platform/backend/app/data/venv
 Environment=PATH=/home/anurag/Desktop/Algo-Trading/algo-trade-platform/backend/app/data/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-Environment=TELEGRAM_BOT_TOKEN=8161925605:AAEFvQtiTmnjUnLiR1BAfVnxVfu8aOg-Yhk
-Environment=TELEGRAM_CHAT_ID=US-stocks.Jr
+Environment=TELEGRAM_BOT_TOKEN=8468875074:AAEeCH6H5NfNzHFobMAaw4epxa2v8nZvw_8
+Environment=TELEGRAM_CHAT_ID=2074764227
 
 [Install]
 WantedBy=multi-user.target 
