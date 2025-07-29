@@ -19,11 +19,11 @@
         "default_timeframe": "15min"
     },
     "database": {
-        "host": "139.59.38.207",
+        "host": "100.121.186.86",
         "port": 5432,
         "user": "postgres",
         "password": "password",
-        "database": "theostock"
+        "database": "theodb"
     },
     "logging": {
         "level": "INFO",

@@ -1,17 +1,20 @@
 [Unit]
 Description=Algo Trading Signal Scanner Service
-After=network.target postgresql.service algo-trading-strategy.service
-Requires=algo-trading-strategy.service
+After=network.target postgresql.service algo-trading-streamdata.service
+Requires=algo-trading-streamdata.service
 
 [Service]
-User=root
-WorkingDirectory=/path/to/algo-trade-platform
-ExecStart=/usr/bin/python3 /path/to/algo-trade-platform/backend/app/signal_scanner/scanner.py
+User=anurag
+WorkingDirectory=/home/anurag/Desktop/Algo-Trading/algo-trade-platform
+ExecStartPre=/bin/sleep 30
+ExecStart=/home/anurag/Desktop/Algo-Trading/algo-trade-platform/backend/app/data/venv/bin/python /home/anurag/Desktop/Algo-Trading/algo-trade-platform/backend/app/signal_scanner/scanner.py
 Restart=always
-RestartSec=10
+RestartSec=30
 Environment=DB_PASSWORD=password
-Environment=SCANNER_CONFIG_PATH=/path/to/algo-trade-platform/config/scanner_config.json
-Environment=PYTHONPATH=/path/to/algo-trade-platform
+Environment=PYTHONPATH=/home/anurag/Desktop/Algo-Trading/algo-trade-platform
+Environment=VIRTUAL_ENV=/home/anurag/Desktop/Algo-Trading/algo-trade-platform/backend/app/data/venv
+Environment=PATH=/home/anurag/Desktop/Algo-Trading/algo-trade-platform/backend/app/data/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+Environment=SCANNER_CONFIG_PATH=/home/anurag/Desktop/Algo-Trading/algo-trade-platform/config/scanner_config.json
 
 [Install]
 WantedBy=multi-user.target
