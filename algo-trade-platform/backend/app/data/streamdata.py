@@ -143,6 +143,13 @@ class IBapi(EWrapper, EClient):
                 contract.secType = sec_type
                 contract.exchange = exchange
                 contract.currency = currency
+                
+                # Handle futures contracts - add contract month
+                if sec_type == 'FUT' and symbol == 'MES':
+                    # For MES, we need to specify the contract month
+                    # Using September 2025 as an example - this should be dynamic
+                    contract.lastTradeDateOrContractMonth = "202509"
+                
                 contract_list.append(contract)
                 
                 # Update our mappings
