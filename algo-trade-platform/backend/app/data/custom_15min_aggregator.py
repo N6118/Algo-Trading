@@ -48,14 +48,14 @@ class Custom15MinAggregator:
                         MIN(timestamp) as min_time,
                         MAX(timestamp) as max_time
                     FROM stock_ticks 
-                    WHERE timestamp >= NOW() - INTERVAL '2 hours'
+                    WHERE timestamp >= NOW() - INTERVAL '24 hours'
                     GROUP BY time_bucket('15 minutes', timestamp), token, symbol
                     HAVING COUNT(*) >= 10  -- At least 10 ticks to consider bucket complete
                 ),
                 existing_buckets AS (
                     SELECT DISTINCT created, token, symbol
                     FROM stock_ohlc_15min 
-                    WHERE created >= NOW() - INTERVAL '2 hours'
+                    WHERE created >= NOW() - INTERVAL '24 hours'
                 )
                 SELECT 
                     rb.bucket,
