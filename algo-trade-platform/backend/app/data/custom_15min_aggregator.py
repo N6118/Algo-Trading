@@ -113,7 +113,7 @@ class Custom15MinAggregator:
                     ))
                     self.connection.commit()
                 
-                logger.info(f"✅ Aggregated bucket {bucket} for {symbol} ({row['tick_count']} ticks)")
+                logger.info(f"✅ Aggregated bucket {bucket} for {symbol}")
                 return True
             else:
                 logger.warning(f"⚠️ No data found for bucket {bucket} {token} {symbol}")
