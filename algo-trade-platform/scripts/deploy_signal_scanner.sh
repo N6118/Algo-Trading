@@ -27,7 +27,7 @@ print_error() {
 }
 
 # Check if we're on the server
-if [[ "$(hostname)" != "anurag" ]]; then
+if [[ "$(hostname)" != "vignes-SER8" ]]; then
     print_error "This script should be run on the server (anurag@100.121.186.86)"
     exit 1
 fi
