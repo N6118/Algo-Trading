@@ -1,5 +1,5 @@
 [Unit]
-Description=Algo Trading Stream Data Service
+Description=Algo Trading Stream Data Service with Telegram Notifications
 After=network.target postgresql.service ibkr-ibc.service
 Requires=ibkr-ibc.service
 
@@ -13,6 +13,8 @@ Environment=DB_PASSWORD=password
 Environment=PYTHONPATH=/home/anurag/Desktop/Algo-Trading/algo-trade-platform
 Environment=VIRTUAL_ENV=/home/anurag/Desktop/Algo-Trading/algo-trade-platform/backend/app/data/venv
 Environment=PATH=/home/anurag/Desktop/Algo-Trading/algo-trade-platform/backend/app/data/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+Environment=TELEGRAM_BOT_TOKEN=8161925605:AAEFvQtiTmnjUnLiR1BAfVnxVfu8aOg-Yhk
+Environment=TELEGRAM_CHAT_ID=US-stocks.Jr
 
 [Install]
 WantedBy=multi-user.target 
