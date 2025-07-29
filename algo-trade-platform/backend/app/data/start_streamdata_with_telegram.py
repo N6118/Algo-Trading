@@ -10,8 +10,8 @@ import subprocess
 from pathlib import Path
 
 # Set Telegram environment variables
-os.environ['TELEGRAM_BOT_TOKEN'] = '8161925605:AAEFvQtiTmnjUnLiR1BAfVnxVfu8aOg-Yhk'
-os.environ['TELEGRAM_CHAT_ID'] = 'US-stocks.Jr'
+os.environ['TELEGRAM_BOT_TOKEN'] = '8468875074:AAEeCH6H5NfNzHFobMAaw4epxa2v8nZvw_8'
+os.environ['TELEGRAM_CHAT_ID'] = '2074764227'
 
 # Add the project root to the Python path
 project_root = Path(__file__).parent.parent.parent.parent
