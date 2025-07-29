@@ -73,7 +73,7 @@ def InitProcess():
         # Remote database configuration
         password = os.getenv("DB_PASSWORD", "password")
         encoded_password = urlquote(password)
-        uri = f"postgresql://postgres:{encoded_password}@100.121.186.86:5432/theodb"
+        uri = f"postgresql://postgres:{encoded_password}@localhost:5432/theodb"
         
         input_table = 'stock_ohlc_15min'
         output_table = 'tbl_ohlc_fifteen_output'
@@ -1201,7 +1201,7 @@ def UpdateProcess():
         # Similar changes needed here - wrap database operations in connection context
         password = os.getenv("DB_PASSWORD", "password")  # Should be in environment variable  
         encoded_password = urlquote(password)
-        uri = f"postgresql://postgres:{encoded_password}@localhost:5432/theostock"
+        uri = f"postgresql://postgres:{encoded_password}@localhost:5432/theodb"
         
         input_table = 'stock_ohlc_15min'
         output_table = 'tbl_ohlc_fifteen_output'
