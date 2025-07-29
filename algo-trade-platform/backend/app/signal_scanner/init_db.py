@@ -34,7 +34,7 @@ def init_db():
         # Get database connection string from environment or use default
         password = os.getenv("DB_PASSWORD", "password")
         encoded_password = urlquote(password)
-        uri = os.getenv("DB_URI", f"postgresql://postgres:{encoded_password}@100.121.186.86:5432/theodb")
+        uri = os.getenv("DB_URI", f"postgresql://postgres:{encoded_password}@localhost:5432/theodb")
         
         # Create engine and tables
         engine = create_engine(uri)
