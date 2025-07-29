@@ -7,7 +7,6 @@ into the real-time data collection pipeline.
 
 import psycopg2
 import pandas as pd
-import pandas_ta as ta
 import numpy as np
 import logging
 import time
@@ -47,6 +46,24 @@ DEFAULT_CONFIG = {
         "dc_source": "length"
     }
 }
+
+def calculate_atr(high, low, close, length=14):
+    """Calculate Average True Range manually"""
+    try:
+        # Calculate True Range
+        tr1 = high - low
+        tr2 = abs(high - close.shift(1))
+        tr3 = abs(low - close.shift(1))
+        
+        true_range = pd.concat([tr1, tr2, tr3], axis=1).max(axis=1)
+        
+        # Calculate ATR using simple moving average
+        atr = true_range.rolling(window=length).mean()
+        
+        return atr
+    except Exception as e:
+        logger.error(f"Error calculating ATR: {e}")
+        return pd.Series([np.nan] * len(high))
 
 def load_config():
     """Load configuration from file or use defaults"""
@@ -188,7 +205,7 @@ class SLTPCalculator:
             df["direction"] = None
             
             # Calculate ATR
-            df["atr"] = ta.atr(df["high"], df["low"], df["close"], 
+            df["atr"] = calculate_atr(df["high"], df["low"], df["close"], 
                                length=self.config["atr_trail_sl"]["atr_length"])
             
             # Initialize variables
