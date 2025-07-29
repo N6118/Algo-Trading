@@ -12,6 +12,10 @@ from ibapi.wrapper import EWrapper
 from ibapi.contract import Contract
 from urllib.parse import quote_plus
 
+# Set Telegram environment variables
+os.environ['TELEGRAM_BOT_TOKEN'] = '8468875074:AAEeCH6H5NfNzHFobMAaw4epxa2v8nZvw_8'
+os.environ['TELEGRAM_CHAT_ID'] = '2074764227'
+
 # Import Telegram notifier
 from backend.app.services.telegram_notifier import (
     send_server_start_notification,
