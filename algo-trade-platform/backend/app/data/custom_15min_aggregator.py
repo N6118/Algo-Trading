@@ -115,8 +115,8 @@ class Custom15MinAggregator:
                 row = df.iloc[0]
                 with self.connection.cursor() as cur:
                     cur.execute(insert_query, (
-                        row['bucket'], row['token'], row['symbol'],
-                        row['open'], row['high'], row['low'], row['close'], row['volume']
+                        row['bucket'], int(row['token']), row['symbol'],
+                        float(row['open']), float(row['high']), float(row['low']), float(row['close']), int(row['volume'])
                     ))
                     self.connection.commit()
                 
