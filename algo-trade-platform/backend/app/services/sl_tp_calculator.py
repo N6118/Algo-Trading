@@ -406,13 +406,16 @@ class SLTPCalculator:
                 # Send Telegram notification for new SL/TP values
                 latest_row = df_latest.iloc[-1]
                 if not pd.isna(latest_row["sl_price"]) and latest_row["sl_price"] > 0:
+                    sh_price_str = f"{latest_row['sh_price']:.2f}" if not pd.isna(latest_row['sh_price']) else 'N/A'
+                    atr_str = f"{latest_row['atr']:.2f}" if not pd.isna(latest_row['atr']) else 'N/A'
+                    
                     message = f"""
 📊 <b>New SL/TP Values for {symbol}</b>
 
 💰 <b>Current Price:</b> {latest_row['close']:.2f}
 🛑 <b>Stop Loss:</b> {latest_row['sl_price']:.2f}
-📈 <b>Take Profit:</b> {latest_row['sh_price']:.2f if not pd.isna(latest_row['sh_price']) else 'N/A'}
-📊 <b>ATR:</b> {latest_row['atr']:.2f if not pd.isna(latest_row['atr']) else 'N/A'}
+📈 <b>Take Profit:</b> {sh_price_str}
+📊 <b>ATR:</b> {atr_str}
 
 ⏰ <b>Time:</b> {latest_row['created']}
                     """.strip()
