@@ -96,7 +96,8 @@ class CorrelationStrategy:
             query = text(f"""
                 SELECT 
                     created,  -- fetch as naive, localize in pandas
-                    open, high, low, close, volume
+                    open, high, low, close, volume,
+                    sh_price, sl_price, sh_status, sl_status
                 FROM {table_name}
                 WHERE symbol = :symbol
                 ORDER BY created DESC
@@ -352,11 +353,11 @@ class CorrelationStrategy:
             primary_price = primary_latest['close']
             correlated_price = correlated_latest['close']
             
-            # Get Swing High/Low levels
-            primary_sh = primary_data['high'].rolling(20).max().iloc[-1]
-            primary_sl = primary_data['low'].rolling(20).min().iloc[-1]
-            correlated_sh = correlated_data['high'].rolling(20).max().iloc[-1]
-            correlated_sl = correlated_data['low'].rolling(20).min().iloc[-1]
+            # Get Swing High/Low levels from database
+            primary_sh = primary_latest['sh_price'] if not pd.isna(primary_latest['sh_price']) else primary_data['high'].rolling(20).max().iloc[-1]
+            primary_sl = primary_latest['sl_price'] if not pd.isna(primary_latest['sl_price']) else primary_data['low'].rolling(20).min().iloc[-1]
+            correlated_sh = correlated_latest['sh_price'] if not pd.isna(correlated_latest['sh_price']) else correlated_data['high'].rolling(20).max().iloc[-1]
+            correlated_sl = correlated_latest['sl_price'] if not pd.isna(correlated_latest['sl_price']) else correlated_data['low'].rolling(20).min().iloc[-1]
             
             # Check buy conditions
             if primary_price > primary_sh and correlated_price < correlated_sl:
@@ -415,11 +416,11 @@ class CorrelationStrategy:
             primary_price = primary_latest['close']
             correlated_price = correlated_latest['close']
             
-            # Get Swing High/Low levels
-            primary_sh = primary_data['high'].rolling(20).max().iloc[-1]
-            primary_sl = primary_data['low'].rolling(20).min().iloc[-1]
-            correlated_sh = correlated_data['high'].rolling(20).max().iloc[-1]
-            correlated_sl = correlated_data['low'].rolling(20).min().iloc[-1]
+            # Get Swing High/Low levels from database
+            primary_sh = primary_latest['sh_price'] if not pd.isna(primary_latest['sh_price']) else primary_data['high'].rolling(20).max().iloc[-1]
+            primary_sl = primary_latest['sl_price'] if not pd.isna(primary_latest['sl_price']) else primary_data['low'].rolling(20).min().iloc[-1]
+            correlated_sh = correlated_latest['sh_price'] if not pd.isna(correlated_latest['sh_price']) else correlated_data['high'].rolling(20).max().iloc[-1]
+            correlated_sl = correlated_latest['sl_price'] if not pd.isna(correlated_latest['sl_price']) else correlated_data['low'].rolling(20).min().iloc[-1]
             
             # Check sell conditions
             if primary_price < primary_sl and correlated_price > correlated_sh:

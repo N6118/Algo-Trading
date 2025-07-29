@@ -116,7 +116,8 @@ class SignalScanner:
             
             # Construct query
             query = text(f"""
-                SELECT timestamp, open, high, low, close, volume
+                SELECT timestamp, open, high, low, close, volume,
+                       sh_price, sl_price, sh_status, sl_status
                 FROM {table_name}
                 WHERE symbol = :symbol
                 ORDER BY timestamp DESC
