@@ -1224,15 +1224,15 @@ def UpdateProcess():
             constraint_exists = conn.execute(check_constraint_query).scalar()
             
             if not constraint_exists:
-                # Add the unique constraint
+                # Add the unique constraint (must include created for partitioned table)
                 add_constraint_query = text(f"""
                     ALTER TABLE {output_table}
-                    ADD CONSTRAINT unique_token_n UNIQUE (token, n)
+                    ADD CONSTRAINT unique_token_n UNIQUE (created, token, n)
                 """)
                 try:
                     conn.execute(add_constraint_query)
                     conn.commit()
-                    logger.info("Added unique constraint on (token, n)")
+                    logger.info("Added unique constraint on (created, token, n)")
                 except Exception as e:
                     logger.warning(f"Could not add unique constraint: {str(e)}")
                     # If error is due to duplicate values, we need to handle them
@@ -1254,7 +1254,7 @@ def UpdateProcess():
                         # Try adding the constraint again
                         conn.execute(add_constraint_query)
                         conn.commit()
-                        logger.info("Added unique constraint on (token, n) after deduplication")
+                        logger.info("Added unique constraint on (created, token, n) after deduplication")
 
         # Get tokens with a separate connection
         with engine.connect() as conn:
@@ -2231,6 +2231,7 @@ def UpdateProcess():
 
     except Exception as e:
         logger.error(f"Error in UpdateProcess: {str(e)}")
+        logger.error(f"Full traceback: {traceback.format_exc()}")
         return {"error": str(e)}, 500
     
     
