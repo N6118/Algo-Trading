@@ -1096,7 +1096,7 @@ def InitProcess():
                                             
                                 # Process integer fields
                                 for field in int_fields:
-                                    if field in row:
+                                    if field in row and row[field] is not None:
                                         try:
                                             value = str(row[field]).strip()
                                             if value == "" or value.lower() == "nan" or value.lower() == "none":
@@ -1105,11 +1105,13 @@ def InitProcess():
                                                 row[field] = int(float(value))  # Convert through float to handle decimal strings
                                         except (ValueError, TypeError):
                                             row[field] = None
+                                    elif field in row:
+                                        row[field] = None
 
                                 # Handle boolean fields
                                 bool_fields = ['fh_status', 'fl_status', 'sh_status', 'sl_status', 'need_break_fractal_up', 'direction']
                                 for field in bool_fields:
-                                    if field in row:
+                                    if field in row and row[field] is not None:
                                         try:
                                             value = str(row[field]).strip()
                                             if value == "" or value.lower() == "nan" or value.lower() == "none":
@@ -1118,6 +1120,8 @@ def InitProcess():
                                                 row[field] = bool(int(float(value)))  # Convert through float to handle decimal strings
                                         except (ValueError, TypeError):
                                             row[field] = False
+                                    elif field in row:
+                                        row[field] = False
 
                                 # Handle array fields (ensure they're never empty strings)
                                 array_fields = ['fharray', 'flarray', 'sharray', 'slarray', 
@@ -2129,7 +2133,7 @@ def UpdateProcess():
                                         
                             # Process integer fields
                             for field in int_fields:
-                                if field in row:
+                                if field in row and row[field] is not None:
                                     try:
                                         value = str(row[field]).strip()
                                         if value == "" or value.lower() == "nan" or value.lower() == "none":
@@ -2138,11 +2142,13 @@ def UpdateProcess():
                                             row[field] = int(float(value))  # Convert through float to handle decimal strings
                                     except (ValueError, TypeError):
                                         row[field] = None
+                                elif field in row:
+                                    row[field] = None
 
                             # Handle boolean fields
                             bool_fields = ['fh_status', 'fl_status', 'sh_status', 'sl_status', 'need_break_fractal_up', 'direction']
                             for field in bool_fields:
-                                if field in row:
+                                if field in row and row[field] is not None:
                                     try:
                                         value = str(row[field]).strip()
                                         if value == "" or value.lower() == "nan" or value.lower() == "none":
@@ -2151,6 +2157,8 @@ def UpdateProcess():
                                             row[field] = bool(int(float(value)))  # Convert through float to handle decimal strings
                                     except (ValueError, TypeError):
                                         row[field] = False
+                                elif field in row:
+                                    row[field] = False
 
                             # Handle array fields (ensure they're never empty strings)
                             array_fields = ['fharray', 'flarray', 'sharray', 'slarray', 
