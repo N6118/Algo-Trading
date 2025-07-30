@@ -379,7 +379,7 @@ def run_ibkr():
                 else:
                     raise Exception("Max retries exceeded")
             
-                    api_thread = threading.Thread(target=app_ibkr.run, daemon=True)
+            api_thread = threading.Thread(target=app_ibkr.run, daemon=True)
             api_thread.start()
             time.sleep(1)  # Allow time for connection
 
