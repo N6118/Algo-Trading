@@ -41,7 +41,7 @@ TWS_CLIENT_ID = 123  # Unique client ID for this connection
 # Remote database configuration
 password = quote_plus("password")
 DB_URI = f"postgresql://postgres:{password}@localhost:5432/theodb"
-pool = SimpleConnectionPool(1, 5, DB_URI)  # Connection pool (min=1, max=5)
+pool = SimpleConnectionPool(1, 10, DB_URI)  # Connection pool (min=1, max=10)
 
 app = Flask(__name__)
 
@@ -453,6 +453,7 @@ def insert_tick(token, symbol, ts, price, volume):
     The timestamp (ts) is provided by the caller (truncated to the second).
     If a row for the same token and ts exists, update price and/or volume accordingly.
     """
+    conn = None
     try:
         conn = pool.getconn()
         with conn.cursor() as cur:
@@ -486,8 +487,14 @@ def insert_tick(token, symbol, ts, price, volume):
         logging.info(f"✅ Inserted/Updated Tick - Token: {token}, Symbol: {symbol}, ts: {ts}, Price: {price}, Volume: {volume}")
     except psycopg2.Error as e:
         logging.error(f"❌ Database Insert Error: {e.pgcode} - {e.pgerror}")
+        if conn:
+            conn.rollback()
+            pool.putconn(conn)
     except Exception as e:
         logging.error(f"❌ Unexpected Error: {e}")
+        if conn:
+            conn.rollback()
+            pool.putconn(conn)
 
 @app.route('/ohlc/<interval>/<token>')
 def get_ohlc(interval, token):
