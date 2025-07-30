@@ -147,11 +147,12 @@ class IBapi(EWrapper, EClient):
                 pool.putconn(conn)
 
     def get_active_contracts(self):
-        """Fetch all active contracts from database."""
+        """Fetch all active contracts from database with automatic timestamp updates."""
         conn = None
         try:
             conn = pool.getconn()
             with conn.cursor() as cur:
+                # First, try to get contracts that were updated recently
                 cur.execute("""
                     SELECT conid, symbol, sec_type, exchange, currency 
                     FROM ibkr_contracts 
@@ -159,6 +160,26 @@ class IBapi(EWrapper, EClient):
                     AND last_updated > NOW() - INTERVAL '24 hours'
                 """)
                 contracts = cur.fetchall()
+                
+                # If no recent contracts, get all active contracts and update their timestamps
+                if not contracts:
+                    logging.info("No recently updated contracts found, fetching all active contracts")
+                    cur.execute("""
+                        SELECT conid, symbol, sec_type, exchange, currency 
+                        FROM ibkr_contracts 
+                        WHERE is_active = true
+                    """)
+                    contracts = cur.fetchall()
+                    
+                    # Update last_updated for all active contracts
+                    if contracts:
+                        cur.execute("""
+                            UPDATE ibkr_contracts 
+                            SET last_updated = NOW() 
+                            WHERE is_active = true
+                        """)
+                        conn.commit()
+                        logging.info(f"Updated timestamps for {len(contracts)} active contracts")
             
             contract_list = []
             for conid, symbol, sec_type, exchange, currency in contracts:
@@ -406,6 +427,31 @@ def run_ibkr():
                 app_ibkr.reqMarketDataType(3)  # 3 = Delayed Data
                 app_ibkr.reqMktData(i+1, contract, "233", False, False, [])
                 time.sleep(0.1)  # Small delay between requests
+
+            # Start periodic timestamp updates to prevent contract expiration
+            def update_contract_timestamps():
+                """Periodically update contract timestamps to keep them active."""
+                while True:
+                    try:
+                        time.sleep(3600)  # Update every hour
+                        conn = pool.getconn()
+                        with conn.cursor() as cur:
+                            cur.execute("""
+                                UPDATE ibkr_contracts 
+                                SET last_updated = NOW() 
+                                WHERE is_active = true
+                            """)
+                            conn.commit()
+                            logging.info("✅ Updated timestamps for all active contracts")
+                    except Exception as e:
+                        logging.error(f"❌ Error updating contract timestamps: {e}")
+                    finally:
+                        if conn:
+                            pool.putconn(conn)
+
+            # Start timestamp update thread
+            timestamp_thread = threading.Thread(target=update_contract_timestamps, daemon=True)
+            timestamp_thread.start()
 
             logging.info("📌 IBKR Market Data Collection Running...")
             while True:

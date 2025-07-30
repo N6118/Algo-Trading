@@ -1,0 +1,11 @@
+[Unit]
+Description=Contract Timestamp Refresh Timer
+Requires=contract-refresh.service
+
+[Timer]
+Unit=contract-refresh.service
+OnCalendar=*-*-* 00/6:00:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target 
