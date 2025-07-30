@@ -167,22 +167,22 @@ class CorrelationStrategy:
             logger.warning(f"Unusual price movements found in data for {symbol}")
             return False
         
-        # Check for data gaps
+        # Check for data gaps (relaxed for historical data)
         expected_interval = pd.Timedelta(timeframe)
         time_diffs = df['timestamp'].diff()
-        if (time_diffs > expected_interval * 2).any():
-            logger.warning(f"Data gaps found in {symbol} data")
+        if (time_diffs > expected_interval * 10).any():  # Allow larger gaps for historical data
+            logger.warning(f"Large data gaps found in {symbol} data")
             return False
         
-        # Check for market hours
+        # Check for market hours (relaxed for historical data)
         et = pytz.timezone('America/New_York')
         # Use datetime objects for market start and end
         market_start_time = datetime.strptime('09:30', '%H:%M').time()
         market_end_time = datetime.strptime('16:00', '%H:%M').time()
         # For each row, compare the timestamp as a datetime
         df['in_market_hours'] = df['timestamp'].apply(lambda ts: market_start_time <= ts.time() <= market_end_time)
-        if not df['in_market_hours'].all():
-            logger.warning(f"Data outside market hours found for {symbol}")
+        if not df['in_market_hours'].any():  # Changed from .all() to .any() to allow some data outside market hours
+            logger.warning(f"All data outside market hours found for {symbol}")
             return False
         # Remove the helper column
         df.drop(columns=['in_market_hours'], inplace=True)
