@@ -150,9 +150,10 @@ class CorrelationStrategy:
             logger.warning(f"No data available for {symbol} in {timeframe} timeframe")
             return False
         
-        # Check for missing values
-        if df.isnull().any().any():
-            logger.warning(f"Missing values found in data for {symbol}")
+        # Check for missing values in critical columns only
+        critical_columns = ['close', 'sh_price', 'sl_price']
+        if df[critical_columns].isnull().any().any():
+            logger.warning(f"Missing values found in critical columns for {symbol}")
             return False
         
         # Check for zero or negative prices
