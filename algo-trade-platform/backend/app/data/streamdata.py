@@ -36,7 +36,7 @@ from backend.app.data.futures_roll import FuturesRollManager
 # TWS Connection Configuration
 TWS_HOST = '127.0.0.1'  # Change this to your TWS server IP
 TWS_PORT = 7496  # Default TWS port (7496 for live, 7497 for paper trading)
-TWS_CLIENT_ID = 123  # Unique client ID for this connection
+TWS_CLIENT_ID = 456  # Unique client ID for this connection
 
 # Remote database configuration
 password = quote_plus("password")
