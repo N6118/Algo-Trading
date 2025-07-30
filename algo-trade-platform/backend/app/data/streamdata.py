@@ -298,7 +298,7 @@ class IBapi(EWrapper, EClient):
 
     def _cache_tick_data(self, token, symbol, ts, price=None, volume=None):
         """Cache tick data and insert when both price and volume are available."""
-        cache_key = f"{token}_{ts.isoformat()}"
+        cache_key = f"{token}_{ts.replace(microsecond=0).isoformat()}"
         
         # Initialize cache if not exists
         if not hasattr(self, '_tick_cache'):
