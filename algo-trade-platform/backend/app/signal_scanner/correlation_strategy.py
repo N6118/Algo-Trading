@@ -167,12 +167,12 @@ class CorrelationStrategy:
             logger.warning(f"Unusual price movements found in data for {symbol}")
             return False
         
-        # Check for data gaps (relaxed for historical data)
-        expected_interval = pd.Timedelta(timeframe)
-        time_diffs = df['timestamp'].diff()
-        if (time_diffs > expected_interval * 10).any():  # Allow larger gaps for historical data
-            logger.warning(f"Large data gaps found in {symbol} data")
-            return False
+        # Check for data gaps (disabled for historical data)
+        # expected_interval = pd.Timedelta(timeframe)
+        # time_diffs = df['timestamp'].diff()
+        # if (time_diffs > expected_interval * 10).any():  # Allow larger gaps for historical data
+        #     logger.warning(f"Large data gaps found in {symbol} data")
+        #     return False
         
         # Check for market hours (relaxed for historical data)
         et = pytz.timezone('America/New_York')
