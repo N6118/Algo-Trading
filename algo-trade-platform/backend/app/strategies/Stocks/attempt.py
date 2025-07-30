@@ -1292,12 +1292,12 @@ def UpdateProcess():
                 )
                 # Convert to SQLAlchemy text object
                 query = text(query)
-                if len(pd.read_sql(query, conn).head(1).n_lookback) > 0:
+                result_df = pd.read_sql(query, conn).head(1)
+                if len(result_df) > 0 and result_df.n_lookback.iloc[0] is not None:
                   # Fix FutureWarning by using .iloc[0] instead of directly calling int on Series
-                  result_df = pd.read_sql(query, conn).head(1)
                   last_updated_n_lookback = int(result_df.n_lookback.iloc[0])
                   last_updated_created = result_df.created.iloc[0]
-                  last_updated_n = int(result_df.n.iloc[0])
+                  last_updated_n = int(result_df.n.iloc[0]) if result_df.n.iloc[0] is not None else 0
                   
                   # GET N ROW NEEDED FROM OTBL <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
                   query = "SELECT * FROM {} WHERE token = {} AND n >= {}".format(
