@@ -160,8 +160,12 @@ class IBapi(EWrapper, EClient):
                 """)
                 contracts = cur.fetchall()
             
+            logging.info(f"📊 Found {len(contracts)} active contracts in database")
+            
             contract_list = []
             for conid, symbol, sec_type, exchange, currency in contracts:
+                logging.info(f"📊 Processing contract: {symbol} ({sec_type}) on {exchange}")
+                
                 contract = Contract()
                 contract.conId = conid
                 contract.symbol = symbol
@@ -174,15 +178,19 @@ class IBapi(EWrapper, EClient):
                     # For MES, we need to specify the contract month
                     # Using September 2025 as an example - this should be dynamic
                     contract.lastTradeDateOrContractMonth = "202509"
+                    logging.info(f"📊 Added contract month for MES: 202509")
                 
                 contract_list.append(contract)
                 
                 # Update our mappings
                 self.contract_details[symbol] = conid
                 
+            logging.info(f"✅ Returning {len(contract_list)} contracts")
             return contract_list
         except Exception as e:
             logging.error(f"❌ Error fetching active contracts: {e}")
+            import traceback
+            logging.error(f"❌ Traceback: {traceback.format_exc()}")
             return []
         finally:
             if conn:
@@ -386,6 +394,8 @@ def run_ibkr():
             # Get active contracts from database
             contracts = app_ibkr.get_active_contracts()
             
+            logging.info(f"📊 Retrieved {len(contracts)} contracts from database")
+            
             # If no contracts in database, add VIX as default
             if not contracts:
                 logging.info("No contracts in database, adding VIX as default")
@@ -395,6 +405,10 @@ def run_ibkr():
                 vix_contract.exchange = 'CBOE'
                 vix_contract.currency = 'USD'
                 contracts = [vix_contract]
+            else:
+                logging.info(f"📊 Using {len(contracts)} contracts from database")
+                for i, contract in enumerate(contracts):
+                    logging.info(f"📊 Contract {i+1}: {contract.symbol} ({contract.secType}) on {contract.exchange}")
 
             # Request contract details and market data for each contract
             for i, contract in enumerate(contracts):
