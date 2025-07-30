@@ -1366,24 +1366,24 @@ def UpdateProcess():
                       low1stArray = list(map(int, last_row['low1starray'][1:-1].split(", "))) if pd.notnull(last_row['low1starray']) else [0]
                       
                       # Pivot variable
-                      lowDailyCur = float(last_row['lowdailycur'])
-                      highDailyCur = float(last_row['highdailycur'])
-                      lowWeeklyCur = float(last_row['lowweeklycur'])
-                      highWeeklyCur = float(last_row['highweeklycur'])
-                      lowMonthlyCur = float(last_row['lowmonthlycur'])
-                      highMonthlyCur = float(last_row['highmonthlycur'])
-                      lowDaily = float(last_row['lowdaily'])
-                      highDaily = float(last_row['highdaily'])
-                      lowWeekly = float(last_row['lowweekly'])
-                      highWeekly = float(last_row['highweekly'])
-                      lowMonthly = float(last_row['lowmonthly'])
-                      highMonthly = float(last_row['highmonthly'])
-                      dailyPivot = float(last_row['dpivot'])
-                      weeklyPivot = float(last_row['wpivot'])
-                      monthlyPivot = float(last_row['mpivot'])
-                      dailyPivotCur = float(last_row['dpivotcur'])
-                      weeklyPivotCur = float(last_row['wpivotcur'])
-                      monthlyPivotCur = float(last_row['mpivotcur'])
+                      lowDailyCur = float(last_row['lowdailycur']) if last_row['lowdailycur'] is not None else None
+                      highDailyCur = float(last_row['highdailycur']) if last_row['highdailycur'] is not None else None
+                      lowWeeklyCur = float(last_row['lowweeklycur']) if last_row['lowweeklycur'] is not None else None
+                      highWeeklyCur = float(last_row['highweeklycur']) if last_row['highweeklycur'] is not None else None
+                      lowMonthlyCur = float(last_row['lowmonthlycur']) if last_row['lowmonthlycur'] is not None else None
+                      highMonthlyCur = float(last_row['highmonthlycur']) if last_row['highmonthlycur'] is not None else None
+                      lowDaily = float(last_row['lowdaily']) if last_row['lowdaily'] is not None else None
+                      highDaily = float(last_row['highdaily']) if last_row['highdaily'] is not None else None
+                      lowWeekly = float(last_row['lowweekly']) if last_row['lowweekly'] is not None else None
+                      highWeekly = float(last_row['highweekly']) if last_row['highweekly'] is not None else None
+                      lowMonthly = float(last_row['lowmonthly']) if last_row['lowmonthly'] is not None else None
+                      highMonthly = float(last_row['highmonthly']) if last_row['highmonthly'] is not None else None
+                      dailyPivot = float(last_row['dpivot']) if last_row['dpivot'] is not None else None
+                      weeklyPivot = float(last_row['wpivot']) if last_row['wpivot'] is not None else None
+                      monthlyPivot = float(last_row['mpivot']) if last_row['mpivot'] is not None else None
+                      dailyPivotCur = float(last_row['dpivotcur']) if last_row['dpivotcur'] is not None else None
+                      weeklyPivotCur = float(last_row['wpivotcur']) if last_row['wpivotcur'] is not None else None
+                      monthlyPivotCur = float(last_row['mpivotcur']) if last_row['mpivotcur'] is not None else None
                   
                       n = int(last_row['n']) + 1 if last_row['n'] is not None else 1
                       direction = int(last_row['direction']) if last_row['direction'] is not None else 1
