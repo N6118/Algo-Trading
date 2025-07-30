@@ -492,6 +492,8 @@ def insert_tick(token, symbol, ts, price, volume):
             pool.putconn(conn)
     except Exception as e:
         logging.error(f"❌ Unexpected Error: {e}")
+        import traceback
+        logging.error(f"❌ Traceback: {traceback.format_exc()}")
         if conn:
             conn.rollback()
             pool.putconn(conn)
