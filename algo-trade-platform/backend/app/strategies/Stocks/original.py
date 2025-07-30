@@ -1500,7 +1500,8 @@ def UpdateProcess():
   
   
 if __name__ == '__main__':
-  app.run(host='0.0.0.0', debug=False, port=5005, threaded=True)
+  # This file is for reference only - use attempt.py for actual SH/SL calculations
+  print("This file is for reference only. Use attempt.py for actual calculations.")
   
   # with open('dbconfig/db_config.json', 'r') as json_file:
   #   db_params = json.load(json_file)
