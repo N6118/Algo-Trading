@@ -1697,8 +1697,13 @@ def UpdateProcess():
                             except:
                               df.at[ n, "sh_price" ] = 0
                           
-                        df.at[n, "n_lookback"] = ShArray[1] if len(ShArray) >= 2 else 0 if df.at[n, "n_lookback"] == None else int(np.nanmin([df.at[n, "n_lookback"], ShArray[1] if len(ShArray) >= 2 else 0]))
-                        df.at[n, "n_lookback"] = SlArray[1] if len(SlArray) >= 2 else 0 if df.at[n, "n_lookback"] == None else int(np.nanmin([df.at[n, "n_lookback"], SlArray[1] if len(SlArray) >= 2 else 0]))
+                        # Check if DataFrame has the expected index before accessing
+                        if n in df.index:
+                            df.at[n, "n_lookback"] = ShArray[1] if len(ShArray) >= 2 else 0 if df.at[n, "n_lookback"] == None else int(np.nanmin([df.at[n, "n_lookback"], ShArray[1] if len(ShArray) >= 2 else 0]))
+                            df.at[n, "n_lookback"] = SlArray[1] if len(SlArray) >= 2 else 0 if df.at[n, "n_lookback"] == None else int(np.nanmin([df.at[n, "n_lookback"], SlArray[1] if len(SlArray) >= 2 else 0]))
+                        else:
+                            logger.warning(f"Index {n} not found in DataFrame. Available indices: {list(df.index)}")
+                            continue
                          
                         df.at[n, "n_lookback"] = int(max(0, np.nanmin([df.at[n, "n_lookback"], n-(config["atr_trail_sl"]["atr_length"]+1)])))
                                        
