@@ -1356,7 +1356,7 @@ def UpdateProcess():
                       ShArray = list(map(int, last_row['sharray'][1:-1].split(", "))) if pd.notnull(last_row['sharray']) else [0]
                       SlArray = list(map(int, last_row['slarray'][1:-1].split(", "))) if pd.notnull(last_row['slarray']) else [0]
                       
-                      need_break_fractal_up = True if int(last_row['need_break_fractal_up']) == 1 else False
+                      need_break_fractal_up = True if last_row['need_break_fractal_up'] is not None and int(last_row['need_break_fractal_up']) == 1 else False
 
                       anchorArray = list(map(int, last_row['anchorarray'][1:-1].split(", "))) if pd.notnull(last_row['anchorarray']) else [0]
                       anchor1stArray = list(map(int, last_row['anchor1starray'][1:-1].split(", "))) if pd.notnull(last_row['anchor1starray']) else [0]
@@ -1385,8 +1385,8 @@ def UpdateProcess():
                       weeklyPivotCur = float(last_row['wpivotcur'])
                       monthlyPivotCur = float(last_row['mpivotcur'])
                   
-                      n = int(last_row['n']) + 1
-                      direction = int(last_row['direction'])
+                      n = int(last_row['n']) + 1 if last_row['n'] is not None else 1
+                      direction = int(last_row['direction']) if last_row['direction'] is not None else 1
                   except Exception as e:
                       logger.warning(f"Error accessing DataFrame attributes: {str(e)}")
                       # Fall back to default values
@@ -2033,7 +2033,7 @@ def UpdateProcess():
                 query = f"""
                     INSERT INTO {output_table} ({', '.join(columns)}) 
                     VALUES ({placeholders})
-                    ON CONFLICT (token, n) 
+                    ON CONFLICT (created, token, n) 
                     DO UPDATE SET 
                     {', '.join([f"{col} = EXCLUDED.{col}" for col in columns if col not in ['created', 'token', 'n']])}
                 """
