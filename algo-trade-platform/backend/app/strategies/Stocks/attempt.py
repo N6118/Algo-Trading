@@ -1282,6 +1282,8 @@ def UpdateProcess():
             with engine.connect() as conn:
                 # create output buffer
                 df = pd.DataFrame()
+                # Initialize df_valid to avoid UnboundLocalError
+                df_valid = pd.DataFrame()
 
                 # CHECK LAST UPDATED ROW ON OTBL <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
                 query = "SELECT created, n, n_lookback FROM {} WHERE token={} ORDER BY created DESC LIMIT 1".format(
@@ -1703,6 +1705,8 @@ def UpdateProcess():
                             df.at[n, "n_lookback"] = SlArray[1] if len(SlArray) >= 2 else 0 if df.at[n, "n_lookback"] == None else int(np.nanmin([df.at[n, "n_lookback"], SlArray[1] if len(SlArray) >= 2 else 0]))
                         else:
                             logger.warning(f"Index {n} not found in DataFrame. Available indices: {list(df.index)}")
+                            # Initialize df_valid as empty DataFrame to avoid UnboundLocalError
+                            df_valid = pd.DataFrame()
                             continue
                          
                         df.at[n, "n_lookback"] = int(max(0, np.nanmin([df.at[n, "n_lookback"], n-(config["atr_trail_sl"]["atr_length"]+1)])))
