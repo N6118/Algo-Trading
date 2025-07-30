@@ -1,0 +1,18 @@
+[Unit]
+Description=Algo Trading Attempt Aggregator Service
+After=network.target algo-trading-attempt.service
+Requires=algo-trading-attempt.service
+
+[Service]
+User=anurag
+WorkingDirectory=/home/anurag/Desktop/Algo-Trading/algo-trade-platform
+ExecStart=/home/anurag/Desktop/Algo-Trading/algo-trade-platform/backend/app/data/venv/bin/python /home/anurag/Desktop/Algo-Trading/algo-trade-platform/backend/app/data/attempt_aggregator.py
+Restart=always
+RestartSec=10
+Environment=DB_PASSWORD=password
+Environment=PYTHONPATH=/home/anurag/Desktop/Algo-Trading/algo-trade-platform
+Environment=VIRTUAL_ENV=/home/anurag/Desktop/Algo-Trading/algo-trade-platform/backend/app/data/venv
+Environment=PATH=/home/anurag/Desktop/Algo-Trading/algo-trade-platform/backend/app/data/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+[Install]
+WantedBy=multi-user.target 
