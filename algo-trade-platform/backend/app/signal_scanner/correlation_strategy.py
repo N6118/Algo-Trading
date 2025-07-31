@@ -456,8 +456,8 @@ class CorrelationStrategy:
                 logger.warning("Missing primary or correlated symbol")
                 return []
             # Get market data
-            primary_data = self.get_market_data(primary_symbol.symbol, primary_symbol.timeframe, lookback=50)
-            correlated_data = self.get_market_data(correlated_symbol.symbol, correlated_symbol.timeframe, lookback=50)
+            primary_data = self.get_market_data(primary_symbol.symbol, primary_symbol.timeframe, lookback=100)
+            correlated_data = self.get_market_data(correlated_symbol.symbol, correlated_symbol.timeframe, lookback=100)
             if primary_data is None or correlated_data is None:
                 return []
             signals = []
