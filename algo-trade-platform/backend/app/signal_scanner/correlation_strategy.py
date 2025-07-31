@@ -207,7 +207,7 @@ class CorrelationStrategy:
         """
         try:
             # Validate minimum data points
-            min_data_points = 20  # Minimum required for reliable correlation
+            min_data_points = 14  # Minimum required for reliable correlation (reduced from 20)
             if len(symbol1_data) < min_data_points or len(symbol2_data) < min_data_points:
                 logger.warning(f"Insufficient data points for correlation calculation (minimum {min_data_points} required)")
                 return None
