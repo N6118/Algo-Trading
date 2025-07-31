@@ -93,6 +93,7 @@ class CorrelationStrategy:
                 raise ValueError(f"Invalid timeframe: {timeframe}")
             
             # Construct query with timezone handling
+            # Get data from the last 7 days to ensure overlap
             query = text(f"""
                 SELECT 
                     created,  -- fetch as naive, localize in pandas
@@ -100,6 +101,7 @@ class CorrelationStrategy:
                     sh_price, sl_price, sh_status, sl_status
                 FROM {table_name}
                 WHERE symbol = :symbol
+                AND created >= NOW() - INTERVAL '7 days'
                 ORDER BY created DESC
                 LIMIT :limit
             """)
