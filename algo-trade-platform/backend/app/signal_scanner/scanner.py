@@ -34,6 +34,9 @@ from backend.app.signal_scanner.db_schema import (
 )
 from backend.app.signal_scanner.correlation_strategy import CorrelationStrategy
 
+# Import Telegram notifier
+from backend.app.services.telegram_notifier import get_telegram_notifier
+
 # Set up logging
 logger = logging.getLogger(__name__)
 
@@ -344,9 +347,32 @@ class SignalScanner:
                 else:
                     logger.info(f"Skipping duplicate signal for {signal.symbol}")
             
-            # Log results
+            # Log results and send Telegram notifications
             if filtered_signals:
                 logger.info(f"Generated {len(filtered_signals)} signals for config {config.name}")
+                
+                # Send Telegram notifications for each signal
+                notifier = get_telegram_notifier()
+                if notifier:
+                    for signal in filtered_signals:
+                        message = f"🚨 **SIGNAL GENERATED** 🚨\n\n"
+                        message += f"**Symbol:** {signal.symbol}\n"
+                        message += f"**Direction:** {signal.direction}\n"
+                        message += f"**Price:** ${signal.price:.2f}\n"
+                        message += f"**Timeframe:** {signal.timeframe}\n"
+                        message += f"**Strategy:** {config.name}\n"
+                        message += f"**Generated:** {signal.generated_at.strftime('%Y-%m-%d %H:%M:%S')}\n\n"
+                        message += f"**Entry Rules:**\n"
+                        for rule in signal.entry_rules:
+                            message += f"• {rule.condition}\n"
+                        
+                        try:
+                            notifier.send_message(message)
+                            logger.info(f"Telegram notification sent for signal {signal.id}")
+                        except Exception as e:
+                            logger.error(f"Failed to send Telegram notification: {e}")
+                else:
+                    logger.warning("Telegram notifier not available")
             else:
                 logger.info(f"No signals generated for config {config.name}")
             

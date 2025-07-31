@@ -174,18 +174,18 @@ class CorrelationStrategy:
         #     logger.warning(f"Large data gaps found in {symbol} data")
         #     return False
         
-        # Check for market hours (relaxed for historical data)
-        et = pytz.timezone('America/New_York')
-        # Use datetime objects for market start and end
-        market_start_time = datetime.strptime('09:30', '%H:%M').time()
-        market_end_time = datetime.strptime('16:00', '%H:%M').time()
-        # For each row, compare the timestamp as a datetime
-        df['in_market_hours'] = df['timestamp'].apply(lambda ts: market_start_time <= ts.time() <= market_end_time)
-        if not df['in_market_hours'].any():  # Changed from .all() to .any() to allow some data outside market hours
-            logger.warning(f"All data outside market hours found for {symbol}")
-            return False
-        # Remove the helper column
-        df.drop(columns=['in_market_hours'], inplace=True)
+        # Check for market hours (disabled - config handles trading hours)
+        # et = pytz.timezone('America/New_York')
+        # # Use datetime objects for market start and end
+        # market_start_time = datetime.strptime('09:30', '%H:%M').time()
+        # market_end_time = datetime.strptime('16:00', '%H:%M').time()
+        # # For each row, compare the timestamp as a datetime
+        # df['in_market_hours'] = df['timestamp'].apply(lambda ts: market_start_time <= ts.time() <= market_end_time)
+        # if not df['in_market_hours'].any():  # Changed from .all() to .any() to allow some data outside market hours
+        #     logger.warning(f"All data outside market hours found for {symbol}")
+        #     return False
+        # # Remove the helper column
+        # df.drop(columns=['in_market_hours'], inplace=True)
         return True
     
     def calculate_correlation(self, symbol1_data, symbol2_data, method='pearson', window=None):
