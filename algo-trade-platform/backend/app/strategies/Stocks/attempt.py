@@ -1053,12 +1053,13 @@ def InitProcess():
                                     logger.warning(f"Invalid token format: {token_value}")
                                     return skipped_rows, valid_rows
 
-                                # Validate n value - skip rows with None as n value
+                                # Generate n value if it's missing (for database data)
                                 n_value = row.get('n')
                                 if n_value is None or str(n_value).strip() == "" or str(n_value).lower() == "nan" or str(n_value).lower() == "none":
-                                    skipped_rows += 1
-                                    logger.warning(f"Skipping row with NULL n value for token: {row.get('token')}")
-                                    return skipped_rows, valid_rows
+                                    # Generate a sequential n value based on the row index or timestamp
+                                    # This is for database data that doesn't have pre-calculated n values
+                                    row['n'] = len(data) + 1  # Simple sequential numbering
+                                    logger.debug(f"Generated n value {row['n']} for token: {row.get('token')}")
 
                                 # Define all numeric fields based on schema
                                 float_fields = [
@@ -2099,12 +2100,13 @@ def UpdateProcess():
                                 logger.warning(f"Invalid token format: {token_value}")
                                 return skipped_rows, valid_rows
 
-                            # Validate n value - skip rows with None as n value
+                            # Generate n value if it's missing (for database data)
                             n_value = row.get('n')
                             if n_value is None or str(n_value).strip() == "" or str(n_value).lower() == "nan" or str(n_value).lower() == "none":
-                                skipped_rows += 1
-                                logger.warning(f"Skipping row with NULL n value for token: {row.get('token')}")
-                                return skipped_rows, valid_rows
+                                # Generate a sequential n value based on the row index or timestamp
+                                # This is for database data that doesn't have pre-calculated n values
+                                row['n'] = len(data) + 1  # Simple sequential numbering
+                                logger.debug(f"Generated n value {row['n']} for token: {row.get('token')}")
 
                             # Define all numeric fields based on schema
                             float_fields = [
@@ -2176,6 +2178,50 @@ def UpdateProcess():
                             for field in array_fields:
                                 if field in row and (row[field] is None or str(row[field]).strip() == ""):
                                     row[field] = "[]"  # Empty array as string
+                            
+                            # Generate default values for missing technical indicator fields
+                            # This is for database data that doesn't have pre-calculated technical indicators
+                            technical_fields = [
+                                'atr', 'atr_trail_stop_loss', 'dc_upper', 'dc_lower', 'dc_mid',
+                                'fh_price', 'fl_price', 'sh_price', 'sl_price',
+                                'fh_status', 'fl_status', 'sh_status', 'sl_status',
+                                'lowestfrom1stlow', 'highestfrom1sthigh', 'fl_dbg', 'fh_dbg',
+                                'n_lookback', 'need_break_fractal_up', 'direction'
+                            ]
+                            
+                            for field in technical_fields:
+                                if field not in row or row[field] is None or str(row[field]).strip() == "" or str(row[field]).lower() == "nan":
+                                    if field in ['fh_status', 'fl_status', 'sh_status', 'sl_status', 'need_break_fractal_up']:
+                                        row[field] = 0  # Boolean fields default to 0
+                                    elif field == 'direction':
+                                        row[field] = 1  # Direction defaults to 1
+                                    elif field == 'n_lookback':
+                                        row[field] = 0  # n_lookback defaults to 0
+                                    else:
+                                        row[field] = None  # Other fields default to None
+                                    logger.debug(f"Generated default value for {field}: {row[field]} for token: {row.get('token')}")
+                            
+                            # Generate default values for missing technical indicator fields
+                            # This is for database data that doesn't have pre-calculated technical indicators
+                            technical_fields = [
+                                'atr', 'atr_trail_stop_loss', 'dc_upper', 'dc_lower', 'dc_mid',
+                                'fh_price', 'fl_price', 'sh_price', 'sl_price',
+                                'fh_status', 'fl_status', 'sh_status', 'sl_status',
+                                'lowestfrom1stlow', 'highestfrom1sthigh', 'fl_dbg', 'fh_dbg',
+                                'n_lookback', 'need_break_fractal_up', 'direction'
+                            ]
+                            
+                            for field in technical_fields:
+                                if field not in row or row[field] is None or str(row[field]).strip() == "" or str(row[field]).lower() == "nan":
+                                    if field in ['fh_status', 'fl_status', 'sh_status', 'sl_status', 'need_break_fractal_up']:
+                                        row[field] = 0  # Boolean fields default to 0
+                                    elif field == 'direction':
+                                        row[field] = 1  # Direction defaults to 1
+                                    elif field == 'n_lookback':
+                                        row[field] = 0  # n_lookback defaults to 0
+                                    else:
+                                        row[field] = None  # Other fields default to None
+                                    logger.debug(f"Generated default value for {field}: {row[field]} for token: {row.get('token')}")
 
                             # Build row_dict with all required columns
                             row_dict = {}
