@@ -107,6 +107,8 @@ class CorrelationStrategy:
             result = session.execute(query, {'symbol': symbol, 'limit': lookback})
             rows = result.fetchall()
             
+            logger.debug(f"Fetched {len(rows)} rows for {symbol} in {timeframe} timeframe")
+            
             if not rows:
                 logger.warning(f"No data found for {symbol} in {timeframe} timeframe")
                 return None
@@ -209,14 +211,20 @@ class CorrelationStrategy:
                 return None
             
             # Align the data by timestamp
+            logger.debug(f"Symbol1 data points: {len(symbol1_data)}, Symbol2 data points: {len(symbol2_data)}")
+            logger.debug(f"Symbol1 timestamps: {symbol1_data['timestamp'].min()} to {symbol1_data['timestamp'].max()}")
+            logger.debug(f"Symbol2 timestamps: {symbol2_data['timestamp'].min()} to {symbol2_data['timestamp'].max()}")
+            
             merged = pd.merge(
                 symbol1_data[['timestamp', 'close']].rename(columns={'close': 'close_1'}),
                 symbol2_data[['timestamp', 'close']].rename(columns={'close': 'close_2'}),
                 on='timestamp', how='inner'
             )
             
+            logger.debug(f"Merged data points: {len(merged)}")
+            
             if len(merged) < min_data_points:
-                logger.warning("Insufficient overlapping data points for correlation calculation")
+                logger.warning(f"Insufficient overlapping data points for correlation calculation. Found {len(merged)}, need {min_data_points}")
                 return None
             
             # Calculate returns
