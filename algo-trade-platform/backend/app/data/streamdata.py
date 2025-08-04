@@ -568,7 +568,7 @@ def get_ohlc(interval, token):
 
 def run_flask():
     """Start Flask API server."""
-    app.run(host='0.0.0.0', port=5006, threaded=True)
+    app.run(host='0.0.0.0', port=5010, threaded=True)
 
 if __name__ == "__main__":
     threading.Thread(target=run_ibkr, daemon=True).start()

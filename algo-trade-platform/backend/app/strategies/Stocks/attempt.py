@@ -2291,7 +2291,7 @@ def UpdateProcess():
     
     
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', debug=False, port=5001, threaded=True)
+    app.run(host='0.0.0.0', debug=False, port=5012, threaded=True)
     
     # with open('dbconfig/db_config.json', 'r') as json_file:
     #   db_params = json.load(json_file)

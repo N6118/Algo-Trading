@@ -15,7 +15,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 # Configuration
-ATTEMPT_URL = "http://localhost:5001/update"
+ATTEMPT_URL = "http://localhost:5012/update"
 CHECK_INTERVAL = 300  # 5 minutes
 
 def call_attempt_update():
@@ -32,7 +32,7 @@ def call_attempt_update():
             return False
             
     except requests.exceptions.ConnectionError:
-        logger.error("❌ Could not connect to attempt.py service (port 5001)")
+        logger.error("❌ Could not connect to attempt.py service (port 5012)")
         return False
     except requests.exceptions.Timeout:
         logger.error("❌ Attempt.py update request timed out")
