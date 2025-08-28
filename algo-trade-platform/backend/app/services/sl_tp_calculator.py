@@ -81,15 +81,32 @@ class SLTPCalculator:
         """Initialize the SL/TP calculator."""
         self.config = load_config()
         self.connection = None
-        self.last_processed_time = None
         self.symbols = ['MES', 'VIX']
-        self.last_processed_timestamps = {} # Dictionary to store last processed timestamp for each symbol
-
+        self.last_processed_timestamps = {}
+        self.load_last_processed_timestamps()
         
-        # Set Telegram environment variables
-        os.environ['TELEGRAM_BOT_TOKEN'] = '8468875074:AAEeCH6H5NfNzHFobMAaw4epxa2v8nZvw_8'
-        os.environ['TELEGRAM_CHAT_ID'] = '2074764227'
-
+    def load_last_processed_timestamps(self):
+        """Load the last processed timestamps from the database to prevent reprocessing."""
+        try:
+            if self.connect_db():
+                with self.connection.cursor() as cur:
+                    for symbol in self.symbols:
+                        cur.execute("""
+                            SELECT MAX(created) FROM tbl_ohlc_fifteen_output 
+                            WHERE symbol = %s
+                        """, (symbol,))
+                        result = cur.fetchone()
+                        if result[0]:
+                            self.last_processed_timestamps[symbol] = result[0]
+                            logger.info(f"📅 Loaded last processed timestamp for {symbol}: {result[0]}")
+        except Exception as e:
+            logger.warning(f"⚠️ Could not load last processed timestamps: {e}")
+    
+    def save_last_processed_timestamp(self, symbol, timestamp):
+        """Save the last processed timestamp for a symbol."""
+        self.last_processed_timestamps[symbol] = timestamp
+        logger.info(f"💾 Saved last processed timestamp for {symbol}: {timestamp}")
+    
     def connect_db(self):
         """Connect to the database"""
         try:
@@ -473,7 +490,7 @@ class SLTPCalculator:
                     return
             
             # Update the last processed timestamp
-            self.last_processed_timestamps[symbol] = latest_timestamp
+            self.save_last_processed_timestamp(symbol, latest_timestamp)
             
             # Calculate SL/TP
             df_calculated = self.calculate_sl_tp(df, symbol)
