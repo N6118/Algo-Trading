@@ -83,7 +83,7 @@ class SLTPCalculator:
         self.connection = None
         self.last_processed_time = None
         self.symbols = ['MES', 'VIX']
-        self.last_notification_values = {}  # Track last sent values to prevent duplicates
+
         
         # Set Telegram environment variables
         os.environ['TELEGRAM_BOT_TOKEN'] = '8468875074:AAEeCH6H5NfNzHFobMAaw4epxa2v8nZvw_8'
@@ -412,12 +412,10 @@ class SLTPCalculator:
                 # Send Telegram notification for new SL/TP values
                 latest_row = df_latest.iloc[-1]
                 if not pd.isna(latest_row["sl_price"]) and latest_row["sl_price"] > 0:
-                    # Check if we should send notification
-                    if self.should_send_notification(symbol, latest_row):
-                        sh_price_str = f"{latest_row['sh_price']:.2f}" if not pd.isna(latest_row['sh_price']) else 'N/A'
-                        atr_str = f"{latest_row['atr']:.2f}" if not pd.isna(latest_row['atr']) else 'N/A'
-                        
-                        message = f"""
+                    sh_price_str = f"{latest_row['sh_price']:.2f}" if not pd.isna(latest_row['sh_price']) else 'N/A'
+                    atr_str = f"{latest_row['atr']:.2f}" if not pd.isna(latest_row['atr']) else 'N/A'
+                    
+                    message = f"""
 📊 <b>New SL/TP Values for {symbol}</b>
 
 💰 <b>Current Price:</b> {latest_row['close']:.2f}
@@ -426,72 +424,20 @@ class SLTPCalculator:
 📊 <b>ATR:</b> {atr_str}
 
 ⏰ <b>Time:</b> {latest_row['created']}
-                        """.strip()
-                        
-                        from backend.app.services.telegram_notifier import get_telegram_notifier
-                        notifier = get_telegram_notifier()
-                        if notifier:
-                            notifier.send_message(message)
-                            logger.info(f"✅ Telegram notification sent for {symbol} - values changed significantly")
-                    else:
-                        logger.info(f"⏭️ Skipping Telegram notification for {symbol} - no significant changes")
+                    """.strip()
+                    
+                    from backend.app.services.telegram_notifier import get_telegram_notifier
+                    notifier = get_telegram_notifier()
+                    if notifier:
+                        notifier.send_message(message)
+                        logger.info(f"✅ Telegram notification sent for {symbol} - SH/SL calculation completed")
                 
         except Exception as e:
             logger.error(f"❌ Error saving to output table for {symbol}: {e}")
             if self.connection:
                 self.connection.rollback()
     
-    def should_send_notification(self, symbol, latest_row):
-        """
-        Check if we should send a Telegram notification based on value changes.
-        
-        Args:
-            symbol: Symbol name
-            latest_row: Latest data row
-            
-        Returns:
-            bool: Whether to send notification
-        """
-        try:
-            # Get current values
-            current_values = {
-                'close': round(latest_row['close'], 2),
-                'sl_price': round(latest_row['sl_price'], 2) if not pd.isna(latest_row['sl_price']) else None,
-                'sh_price': round(latest_row['sh_price'], 2) if not pd.isna(latest_row['sh_price']) else None,
-                'atr': round(latest_row['atr'], 2) if not pd.isna(latest_row['atr']) else None
-            }
-            
-            # Check if we have previous values
-            if symbol not in self.last_notification_values:
-                self.last_notification_values[symbol] = current_values
-                return True
-            
-            # Get previous values
-            prev_values = self.last_notification_values[symbol]
-            
-            # Check if values have changed significantly (more than 0.5% for price, 1% for ATR)
-            price_changed = (
-                abs(current_values['close'] - prev_values['close']) / prev_values['close'] > 0.005 or
-                (current_values['sl_price'] and prev_values['sl_price'] and 
-                 abs(current_values['sl_price'] - prev_values['sl_price']) / prev_values['sl_price'] > 0.005) or
-                (current_values['sh_price'] and prev_values['sh_price'] and 
-                 abs(current_values['sh_price'] - prev_values['sh_price']) / prev_values['sh_price'] > 0.005)
-            )
-            
-            atr_changed = (
-                current_values['atr'] and prev_values['atr'] and
-                abs(current_values['atr'] - prev_values['atr']) / prev_values['atr'] > 0.01
-            )
-            
-            # Update stored values
-            self.last_notification_values[symbol] = current_values
-            
-            # Send notification only if significant changes occurred
-            return price_changed or atr_changed
-            
-        except Exception as e:
-            logger.error(f"Error checking notification conditions: {e}")
-            return True  # Send notification if error occurs
+
 
     def process_symbol(self, symbol):
         """Process a single symbol"""
