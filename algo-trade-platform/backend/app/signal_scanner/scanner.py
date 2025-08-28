@@ -253,7 +253,7 @@ class SignalScanner:
             
             # Use SQLAlchemy ORM instead of raw SQL
             expired_signals = session.query(GeneratedSignal).filter(
-                GeneratedSignal.status.in_(['New', 'Pending']),
+                GeneratedSignal.status == 'New',  # Only 'New' status is available
                 GeneratedSignal.signal_time < cutoff_time
             ).all()
             

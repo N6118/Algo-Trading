@@ -484,7 +484,7 @@ class CorrelationStrategy:
                             GeneratedSignal.direction == 'Long',
                             GeneratedSignal.timeframe == primary_symbol.timeframe,
                             GeneratedSignal.signal_time > cutoff_time,
-                            GeneratedSignal.status.in_(['New', 'Pending'])  # Only check active signals
+                            GeneratedSignal.status == 'New'  # Only 'New' status is available
                         ).first()
                         duplicate = existing is not None
                         
@@ -524,7 +524,7 @@ class CorrelationStrategy:
                             GeneratedSignal.direction == 'Short',
                             GeneratedSignal.timeframe == primary_symbol.timeframe,
                             GeneratedSignal.signal_time > cutoff_time,
-                            GeneratedSignal.status.in_(['New', 'Pending'])  # Only check active signals
+                            GeneratedSignal.status == 'New'  # Only 'New' status is available
                         ).first()
                         duplicate = existing is not None
                         
