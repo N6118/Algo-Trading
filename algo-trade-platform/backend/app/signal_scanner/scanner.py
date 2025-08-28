@@ -251,20 +251,20 @@ class SignalScanner:
             # Mark signals older than 2 hours as expired
             cutoff_time = datetime.utcnow() - timedelta(hours=2)
             
-            query = text("""
-                UPDATE generated_signals
-                SET status = 'Expired'
-                WHERE status IN ('New', 'Pending')
-                AND signal_time < :cutoff_time
-            """)
+            # Use SQLAlchemy ORM instead of raw SQL
+            expired_signals = session.query(GeneratedSignal).filter(
+                GeneratedSignal.status.in_(['New', 'Pending']),
+                GeneratedSignal.signal_time < cutoff_time
+            ).all()
             
-            result = session.execute(query, {'cutoff_time': cutoff_time})
-            updated_count = result.rowcount
+            updated_count = 0
+            for signal in expired_signals:
+                signal.status = 'Expired'
+                updated_count += 1
             
             if updated_count > 0:
+                session.commit()
                 logger.info(f"Marked {updated_count} old signals as expired")
-            
-            session.commit()
         
         except Exception as e:
             logger.error(f"Error marking old signals as expired: {str(e)}")
