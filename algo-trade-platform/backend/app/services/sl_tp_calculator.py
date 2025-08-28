@@ -438,11 +438,28 @@ class SLTPCalculator:
             if self.connection:
                 self.connection.rollback()
     
+    def refresh_continuous_aggregate(self, symbol):
+        """Refresh the continuous aggregate for a specific symbol."""
+        try:
+            refresh_query = """
+                CALL refresh_continuous_aggregate('stock_ohlc_15min', NOW() - INTERVAL '1 hour', NOW());
+            """
+            with self.connection.cursor() as cur:
+                cur.execute("COMMIT")  # End any existing transaction
+                cur.execute(refresh_query)
+                self.connection.commit()
+            logger.info(f"✅ Refreshed continuous aggregate for {symbol}")
+        except Exception as e:
+            logger.warning(f"⚠️ Could not refresh continuous aggregate for {symbol}: {e}")
+            self.connection.rollback()
 
 
     def process_symbol(self, symbol):
         """Process a single symbol"""
         try:
+            # Refresh continuous aggregates to ensure we have the latest data
+            self.refresh_continuous_aggregate(symbol)
+            
             # Get latest data
             df = self.get_latest_15min_data(symbol)
             if df.empty:
