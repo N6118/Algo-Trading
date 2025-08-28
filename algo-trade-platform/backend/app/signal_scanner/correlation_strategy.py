@@ -476,17 +476,21 @@ class CorrelationStrategy:
                             config, primary_symbol.symbol, 'Long', primary_data.iloc[-1]['close'], primary_symbol.timeframe
                         )
                     else:
-                        # Fallback: check in DB for same config/symbol/direction/price/timeframe in last 15min
-                        cutoff_time = datetime.utcnow() - timedelta(minutes=15)
+                        # Improved duplicate check: look for any signal in the last 30 minutes with same direction
+                        cutoff_time = datetime.utcnow() - timedelta(minutes=30)
                         existing = session.query(GeneratedSignal).filter(
                             GeneratedSignal.config_id == config.id,
                             GeneratedSignal.symbol == primary_symbol.symbol,
                             GeneratedSignal.direction == 'Long',
-                            GeneratedSignal.price == primary_data.iloc[-1]['close'],
                             GeneratedSignal.timeframe == primary_symbol.timeframe,
-                            GeneratedSignal.signal_time > cutoff_time
+                            GeneratedSignal.signal_time > cutoff_time,
+                            GeneratedSignal.status.in_(['New', 'Pending'])  # Only check active signals
                         ).first()
                         duplicate = existing is not None
+                        
+                        # Additional check: if we have a recent signal, don't generate another one
+                        if existing:
+                            logger.info(f"Duplicate buy signal detected for {primary_symbol.symbol} in last 30 minutes, skipping.")
                     if not duplicate:
                         signal = GeneratedSignal(
                             config_id=config.id,
@@ -512,16 +516,21 @@ class CorrelationStrategy:
                             config, primary_symbol.symbol, 'Short', primary_data.iloc[-1]['close'], primary_symbol.timeframe
                         )
                     else:
-                        cutoff_time = datetime.utcnow() - timedelta(minutes=15)
+                        # Improved duplicate check: look for any signal in the last 30 minutes with same direction
+                        cutoff_time = datetime.utcnow() - timedelta(minutes=30)
                         existing = session.query(GeneratedSignal).filter(
                             GeneratedSignal.config_id == config.id,
                             GeneratedSignal.symbol == primary_symbol.symbol,
                             GeneratedSignal.direction == 'Short',
-                            GeneratedSignal.price == primary_data.iloc[-1]['close'],
                             GeneratedSignal.timeframe == primary_symbol.timeframe,
-                            GeneratedSignal.signal_time > cutoff_time
+                            GeneratedSignal.signal_time > cutoff_time,
+                            GeneratedSignal.status.in_(['New', 'Pending'])  # Only check active signals
                         ).first()
                         duplicate = existing is not None
+                        
+                        # Additional check: if we have a recent signal, don't generate another one
+                        if existing:
+                            logger.info(f"Duplicate sell signal detected for {primary_symbol.symbol} in last 30 minutes, skipping.")
                     if not duplicate:
                         signal = GeneratedSignal(
                             config_id=config.id,

@@ -244,6 +244,36 @@ class SignalScanner:
         finally:
             session.close()
 
+    def mark_old_signals_expired(self):
+        """Mark old signals as expired to prevent blocking new signals."""
+        session = self.Session()
+        try:
+            # Mark signals older than 2 hours as expired
+            cutoff_time = datetime.utcnow() - timedelta(hours=2)
+            
+            query = text("""
+                UPDATE generated_signals
+                SET status = 'Expired'
+                WHERE status IN ('New', 'Pending')
+                AND signal_time < :cutoff_time
+            """)
+            
+            result = session.execute(query, {'cutoff_time': cutoff_time})
+            updated_count = result.rowcount
+            
+            if updated_count > 0:
+                logger.info(f"Marked {updated_count} old signals as expired")
+            
+            session.commit()
+        
+        except Exception as e:
+            logger.error(f"Error marking old signals as expired: {str(e)}")
+            session.rollback()
+            raise
+        
+        finally:
+            session.close()
+
     @retry(
         stop=stop_after_attempt(3),
         wait=wait_exponential(multiplier=1, min=4, max=10),
@@ -518,6 +548,10 @@ class SignalScanner:
         """Main loop for the signal scanner."""
         while self.running:
             try:
+                # Mark old signals as expired to prevent blocking new signals
+                self.mark_old_signals_expired()
+                
+                # Run scheduled tasks
                 schedule.run_pending()
                 time.sleep(1)
             except Exception as e:
