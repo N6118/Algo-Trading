@@ -83,6 +83,7 @@ class SLTPCalculator:
         self.connection = None
         self.last_processed_time = None
         self.symbols = ['MES', 'VIX']
+        self.last_processed_timestamps = {} # Dictionary to store last processed timestamp for each symbol
 
         
         # Set Telegram environment variables
@@ -447,6 +448,16 @@ class SLTPCalculator:
             if df.empty:
                 logger.warning(f"⚠️ No data available for {symbol}")
                 return
+            
+            # Check if we've already processed the latest data
+            latest_timestamp = df['created'].max()
+            if symbol in self.last_processed_timestamps:
+                if latest_timestamp <= self.last_processed_timestamps[symbol]:
+                    logger.info(f"⏭️ Already processed latest data for {symbol} at {latest_timestamp}")
+                    return
+            
+            # Update the last processed timestamp
+            self.last_processed_timestamps[symbol] = latest_timestamp
             
             # Calculate SL/TP
             df_calculated = self.calculate_sl_tp(df, symbol)
