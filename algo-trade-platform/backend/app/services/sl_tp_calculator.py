@@ -458,8 +458,9 @@ class SLTPCalculator:
     def refresh_continuous_aggregate(self, symbol):
         """Refresh the continuous aggregate for a specific symbol."""
         try:
+            # More aggressive refresh to ensure we get all available data
             refresh_query = """
-                CALL refresh_continuous_aggregate('stock_ohlc_15min', NOW() - INTERVAL '4 hours', NOW());
+                CALL refresh_continuous_aggregate('stock_ohlc_15min', NOW() - INTERVAL '24 hours', NOW());
             """
             with self.connection.cursor() as cur:
                 cur.execute("COMMIT")  # End any existing transaction
