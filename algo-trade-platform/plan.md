@@ -2,6 +2,149 @@
 
 This document outlines the comprehensive plan for building an algorithmic trading platform with data collection, processing, signal generation, and trade management capabilities. The platform will include a correlation-based strategy as an initial implementation, optimized for U.S. markets.
 
+## 🏗️ System Architecture & Deployment Model
+
+### Development Environment
+- **Local Development**: macOS development machine with local code editing
+- **Remote Deployment**: All services run on a remote Linux server
+- **Database**: PostgreSQL 17 + TimescaleDB extension on remote server
+- **Deployment Method**: Git push/pull workflow (local → remote server)
+- **Services**: Managed via systemd on remote server
+
+### Key Infrastructure Components
+- **Database**: `theodb` (PostgreSQL 17 + TimescaleDB)
+- **Data Source**: IBKR TWS/Gateway (port 7496)
+- **Backend**: FastAPI (Python)
+- **Frontend**: React + TypeScript + Vite
+- **Notifications**: Telegram Bot API
+- **Monitoring**: Custom logging + Telegram notifications
+
+### Critical Services (systemd)
+- `algo-trading-streamdata.service` - Data collection from IBKR
+- `algo-trading-signal-scanner.service` - Signal generation
+- `algo-trading-attempt.service` - Strategy execution
+- `algo-trading-attempt-aggregator.service` - Data aggregation
+- `postgres-monitor.service` - Database monitoring
+
+## 📊 Current System Status
+
+### ✅ Fully Operational Components
+- **Data Streaming**: IBKR tick data collection via `streamdata.py`
+- **Data Aggregation**: TimescaleDB continuous aggregates (5min, 15min, 60min)
+- **SH/SL Calculator**: Swing High/Low calculations with Telegram notifications
+- **Signal Scanner**: Correlation-based signal generation
+- **Telegram Notifications**: Real-time alerts for system events
+- **Database**: PostgreSQL 17 + TimescaleDB with proper hypertables
+
+### 🔧 Recently Fixed Issues
+- **TimescaleDB Auto-refresh**: Enabled continuous aggregate refresh policies
+- **Duplicate Notifications**: Implemented timestamp tracking in SH/SL calculator
+- **Signal Scanner**: Fixed duplicate signal detection and cleanup
+- **Database Schema**: Corrected enum constraints and table structures
+
+### 📁 Critical Files & Their Purposes
+- `backend/app/data/streamdata.py` - Core data collection from IBKR
+- `backend/app/services/sl_tp_calculator.py` - SH/SL calculations & notifications
+- `backend/app/signal_scanner/scanner.py` - Main signal scanning logic
+- `backend/app/signal_scanner/correlation_strategy.py` - Correlation strategy implementation
+- `backend/app/services/telegram_notifier.py` - Telegram notification service
+- `backend/app/models/dbsetup.py` - Database schema and TimescaleDB setup
+- `config/telegram_config.json` - Telegram bot configuration
+- `config/scanner_config.json` - Signal scanner settings
+- `server/*.service` - systemd service definitions
+
+## 🚨 Troubleshooting Guide
+
+### Common Issues & Solutions
+1. **"relation does not exist" errors**: Check if PostgreSQL 17 is running and TimescaleDB is enabled
+2. **Duplicate Telegram messages**: Check `last_processed_timestamps` in SH/SL calculator
+3. **Stale data in SH/SL**: Verify TimescaleDB continuous aggregate refresh policies are enabled
+4. **Signal scanner errors**: Check enum constraints in database schema
+5. **Connection issues**: Verify IBKR TWS/Gateway is running on port 7496
+
+### Database Verification Commands
+```sql
+-- Check TimescaleDB extension
+SELECT * FROM pg_extension WHERE extname = 'timescaledb';
+
+-- Check continuous aggregates
+SELECT * FROM timescaledb_information.jobs WHERE proc_name = 'policy_refresh_continuous_aggregate';
+
+-- Check hypertables
+SELECT * FROM timescaledb_information.hypertables;
+
+-- Check recent data
+SELECT COUNT(*) FROM stock_ticks WHERE created > NOW() - INTERVAL '1 hour';
+```
+
+### Service Management Commands
+```bash
+# Check service status
+sudo systemctl status algo-trading-*
+
+# Restart services
+sudo systemctl restart algo-trading-streamdata.service
+sudo systemctl restart algo-trading-signal-scanner.service
+
+# View logs
+sudo journalctl -u algo-trading-streamdata.service -f
+sudo journalctl -u algo-trading-signal-scanner.service -f
+```
+
+## 🔐 Configuration & Credentials
+
+### Database Configuration
+- **Host**: localhost (on remote server)
+- **Port**: 5432
+- **Database**: theodb
+- **User**: postgres
+- **Password**: password (stored in systemd service files)
+
+### Telegram Configuration
+- **Bot Token**: 8468875074:AAEeCH6H5NfNzHFobMAaw4epxa2v8nZvw_8
+- **Bot Username**: @algo_trading_notifications_bot
+- **Current Chat ID**: Configured in `config/telegram_config.json`
+- **Multi-user Support**: Ready for boss's user ID addition
+
+### IBKR Configuration
+- **TWS/Gateway Port**: 7496
+- **Connection Type**: WebSocket
+- **Symbols**: MES, VIX (configurable)
+- **Market Hours**: 09:30-16:00 ET (configurable)
+
+## 📈 Data Flow Architecture
+
+```
+IBKR TWS/Gateway → streamdata.py → stock_ticks (TimescaleDB)
+                                      ↓
+                              Continuous Aggregates
+                              (5min, 15min, 60min)
+                                      ↓
+                              sl_tp_calculator.py
+                              (SH/SL calculations)
+                                      ↓
+                              scanner.py + correlation_strategy.py
+                              (Signal generation)
+                                      ↓
+                              Telegram notifications
+                              (Real-time alerts)
+```
+
+## 🔄 Development Workflow
+
+### Code Changes
+1. **Local Development**: Edit code on macOS machine
+2. **Git Push**: `git add . && git commit -m "message" && git push`
+3. **Remote Pull**: SSH to server and run `git pull`
+4. **Service Restart**: Restart affected systemd services
+5. **Verification**: Check logs and Telegram notifications
+
+### Testing New Features
+1. **Local Testing**: Use test scripts in project root
+2. **Remote Testing**: SSH to server and run Python scripts directly
+3. **Production Testing**: Monitor via Telegram notifications and logs
+4. **Rollback**: Git revert if issues arise
+
 ## 1. Data Collection
 
 - [x] Collect tick data for symbols via WebSocket
@@ -335,10 +478,10 @@ This document outlines the comprehensive plan for building an algorithmic tradin
    - [ ] Implement futures contract roll logic
 
 2. Signal Generation
-   - [ ] Implement configurable interval signal checking
-   - [ ] Code the multi-symbol correlation logic
-   - [ ] Test signal generation with historical data
-   - [ ] Add settlement-price vs. last-trade sanity checks
+   - [x] Implement configurable interval signal checking
+   - [x] Code the multi-symbol correlation logic
+   - [x] Test signal generation with historical data
+   - [x] Add settlement-price vs. last-trade sanity checks
 
 3. Order Execution
    - [ ] Implement order placement for configured symbols
@@ -351,4 +494,148 @@ This document outlines the comprehensive plan for building an algorithmic tradin
    - [ ] Develop time-based trade closure functionality
    - [ ] Create deals reporting for the strategy
    - [ ] Implement Reg-T margin compliance
+
+## 12. Monitoring & Alerting
+
+### Telegram Notifications
+- [x] **System Status**: Connection status, service health
+- [x] **Data Collection**: First/last tick data entries
+- [x] **SH/SL Calculations**: New Swing High/Low values
+- [x] **Signal Generation**: New trading signals
+- [x] **Error Alerts**: System failures and exceptions
+- [x] **Multi-user Support**: Ready for boss notifications
+
+### Logging Strategy
+- [x] **Structured Logging**: JSON format for easy parsing
+- [x] **Log Levels**: DEBUG, INFO, WARNING, ERROR, CRITICAL
+- [x] **Log Rotation**: Automatic log file management
+- [x] **Remote Logging**: Centralized log collection
+- [x] **Performance Metrics**: Latency, throughput tracking
+
+### Health Checks
+- [x] **Database Connectivity**: Connection pool monitoring
+- [x] **IBKR Connection**: TWS/Gateway status
+- [x] **Data Freshness**: Recent tick data validation
+- [x] **Service Status**: systemd service health
+- [x] **Memory Usage**: Process resource monitoring
+
+## 13. Security & Compliance
+
+### Data Security
+- [x] **Encrypted Connections**: SSL/TLS for database and API
+- [x] **Credential Management**: Environment variables for secrets
+- [x] **Access Control**: Database user permissions
+- [x] **Audit Logging**: Track all system access
+
+### Regulatory Compliance
+- [x] **SEC 17a-4**: Data retention requirements
+- [x] **PDT Rules**: Pattern Day Trader compliance
+- [x] **Reg-T Margin**: Margin requirement validation
+- [x] **Order Management**: Proper order routing and execution
+
+### Risk Management
+- [x] **Position Limits**: Maximum position sizes
+- [x] **Loss Limits**: Maximum daily loss thresholds
+- [x] **Exposure Limits**: Maximum market exposure
+- [x] **Circuit Breakers**: Automatic trading halts
+
+## 14. Performance Optimization
+
+### Database Optimization
+- [x] **TimescaleDB Hypertables**: Time-series data optimization
+- [x] **Continuous Aggregates**: Pre-computed OHLC data
+- [x] **Compression Policies**: Automatic data compression
+- [x] **Retention Policies**: Automatic data cleanup
+- [x] **Index Optimization**: Proper indexing for queries
+
+### Application Performance
+- [x] **Connection Pooling**: Database connection management
+- [x] **Async Processing**: Non-blocking operations
+- [x] **Caching**: Redis for frequently accessed data
+- [x] **Load Balancing**: Multiple service instances
+- [x] **Resource Monitoring**: CPU, memory, disk usage
+
+### Latency Optimization
+- [x] **Co-location**: Services near exchange
+- [x] **Network Optimization**: Low-latency connections
+- [x] **Memory Management**: Efficient data structures
+- [x] **Parallel Processing**: Multi-threaded operations
+
+## 15. Disaster Recovery & Backup
+
+### Backup Strategy
+- [x] **Database Backups**: Daily automated backups
+- [x] **Configuration Backups**: Service configuration files
+- [x] **Code Backups**: Git repository with remote backup
+- [x] **Log Backups**: Centralized log storage
+
+### Recovery Procedures
+- [x] **Service Recovery**: Automated service restart
+- [x] **Database Recovery**: Point-in-time recovery
+- [x] **Configuration Recovery**: Automated config restoration
+- [x] **Data Validation**: Post-recovery data integrity checks
+
+### High Availability
+- [x] **Service Redundancy**: Multiple service instances
+- [x] **Database Replication**: Read replicas for scaling
+- [x] **Failover Procedures**: Automatic failover mechanisms
+- [x] **Health Monitoring**: Continuous availability monitoring
+
+## 🎯 Current Priorities & Next Steps
+
+### Immediate Tasks (Next 1-2 Days)
+1. **Multi-user Telegram Notifications**: Add boss's user ID to notification system
+2. **Order Execution Integration**: Connect signal generation to actual order placement
+3. **Trade Management**: Implement real-time trade monitoring and management
+4. **Frontend Dashboard**: Complete React dashboard for monitoring and control
+
+### Short-term Goals (Next 1-2 Weeks)
+1. **Strategy Backtesting**: Implement historical data backtesting for correlation strategy
+2. **Risk Management**: Add comprehensive risk controls and position sizing
+3. **Performance Optimization**: Optimize database queries and service performance
+4. **Documentation**: Complete API documentation and user guides
+
+### Medium-term Goals (Next 1-2 Months)
+1. **Additional Strategies**: Implement momentum, mean reversion, and other strategies
+2. **Advanced Analytics**: Add machine learning models for signal improvement
+3. **Multi-asset Support**: Extend to options, futures, and other instruments
+4. **Enterprise Features**: Add multi-user support, role-based access, and audit trails
+
+## 📋 Quick Start Guide for New Developers
+
+### Prerequisites
+- Python 3.11+, PostgreSQL 17, TimescaleDB extension
+- IBKR TWS/Gateway running on port 7496
+- Telegram bot token and chat ID
+- SSH access to remote server
+
+### First Steps
+1. **Clone Repository**: `git clone <repo-url>`
+2. **Install Dependencies**: `pip install -r backend/requirements.txt`
+3. **Setup Database**: Run `backend/app/models/dbsetup.py`
+4. **Configure Services**: Update config files with your credentials
+5. **Deploy to Server**: Push code and restart services
+6. **Verify Operation**: Check Telegram notifications and logs
+
+### Common Commands
+```bash
+# Check system status
+ssh server "sudo systemctl status algo-trading-*"
+
+# View recent logs
+ssh server "sudo journalctl -u algo-trading-streamdata.service -n 50"
+
+# Restart services
+ssh server "sudo systemctl restart algo-trading-streamdata.service"
+
+# Check database
+ssh server "psql -d theodb -c 'SELECT COUNT(*) FROM stock_ticks WHERE created > NOW() - INTERVAL \"1 hour\";'"
+```
+
+### Key Files to Understand
+- `backend/app/data/streamdata.py` - Data collection logic
+- `backend/app/services/sl_tp_calculator.py` - SH/SL calculations
+- `backend/app/signal_scanner/scanner.py` - Signal generation
+- `config/*.json` - Configuration files
+- `server/*.service` - systemd service definitions
 

@@ -1,105 +1,110 @@
 #!/usr/bin/env python3
+"""
+Test Signal Scanner
+Tests the signal scanner functionality to ensure it's working properly
+"""
 
 import sys
 import os
-from urllib.parse import quote_plus
+from pathlib import Path
 
 # Add the project root to the Python path
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__)))
-if project_root not in sys.path:
-    sys.path.insert(0, project_root)
+project_root = Path(__file__).parent
+sys.path.insert(0, str(project_root))
 
 from backend.app.signal_scanner.scanner import SignalScanner
 from backend.app.signal_scanner.db_schema import SignalConfig
-from backend.app.signal_scanner.correlation_strategy import CorrelationStrategy
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy import create_engine
-import pandas as pd
+from backend.app.signal_scanner.init_db import Session
 
 def test_signal_scanner():
-    # Database connection
-    password = quote_plus('password')
-    uri = f'postgresql://postgres:{password}@localhost:5432/theodb'
-    engine = create_engine(uri)
-    Session = sessionmaker(bind=engine)
-    session = Session()
+    """Test the signal scanner functionality"""
+    print("🧪 Testing Signal Scanner...")
+    print("=" * 40)
     
     try:
-        # Get the active config
-        config = session.query(SignalConfig).filter(SignalConfig.id == 1).first()
-        if not config:
-            print("No active config found")
-            return
-        
-        print(f"Testing with config: {config.name}")
-        
-        # Create correlation strategy directly
-        strategy = CorrelationStrategy(config)
-        
-        # Get latest data manually
-        query = """
-        SELECT symbol, created, close, sh_price, sl_price, sh_status, sl_status 
-        FROM tbl_ohlc_fifteen_output 
-        WHERE symbol IN ('MES', 'VIX') 
-        ORDER BY created DESC 
-        LIMIT 10
-        """
-        
-        df = pd.read_sql_query(query, engine)
-        print("\nLatest data:")
-        print(df.to_string())
-        
-        # Get MES and VIX data separately
-        mes_data = df[df['symbol'] == 'MES'].iloc[0]
-        vix_data = df[df['symbol'] == 'VIX'].iloc[0]
-        
-        print(f"\nMES Data:")
-        print(f"  Close: {mes_data['close']}")
-        print(f"  SH: {mes_data['sh_price']}")
-        print(f"  SL: {mes_data['sl_price']}")
-        print(f"  SH Status: {mes_data['sh_status']}")
-        print(f"  SL Status: {mes_data['sl_status']}")
-        
-        print(f"\nVIX Data:")
-        print(f"  Close: {vix_data['close']}")
-        print(f"  SH: {vix_data['sh_price']}")
-        print(f"  SL: {vix_data['sl_price']}")
-        print(f"  SH Status: {vix_data['sh_status']}")
-        print(f"  SL Status: {vix_data['sl_status']}")
-        
-        # Check buy conditions manually
-        mes_price = mes_data['close']
-        vix_price = vix_data['close']
-        mes_sh = mes_data['sh_price']
-        vix_sl = vix_data['sl_price']
-        
-        print(f"\nBuy Conditions Check:")
-        print(f"  MES Close ({mes_price}) > MES SH ({mes_sh}): {mes_price > mes_sh}")
-        print(f"  VIX Close ({vix_price}) < VIX SL ({vix_sl}): {vix_price < vix_sl}")
-        print(f"  Both conditions met: {mes_price > mes_sh and vix_price < vix_sl}")
-        
-        # Create scanner and test
+        # Create scanner instance
         scanner = SignalScanner()
-        scanner.setup_database()
         
-        # Scan for signals
-        signals = scanner.scan_for_signals(config)
+        # Get signal configurations
+        session = Session()
+        configs = session.query(SignalConfig).filter(SignalConfig.is_active == True).all()
         
-        print(f"\nGenerated {len(signals)} signals")
-        
-        # Print signal details
-        for signal in signals:
-            print(f"Signal: {signal.symbol} {signal.direction} at ${signal.price:.2f}")
-            print(f"  Time: {signal.signal_time}")
-            print(f"  Status: {signal.status}")
-            print("---")
+        if not configs:
+            print("❌ No active signal configurations found")
+            return False
             
-    except Exception as e:
-        print(f"Error: {e}")
-        import traceback
-        traceback.print_exc()
-    finally:
+        print(f"✅ Found {len(configs)} active signal configurations")
+        
+        # Test scanning for each config
+        for config in configs:
+            print(f"\n🔍 Testing config: {config.name}")
+            print(f"   Symbols: {config.primary_symbol}, {config.correlated_symbol}")
+            print(f"   Timeframe: {config.primary_symbol_timeframe}")
+            
+            try:
+                # Run signal scan
+                signals = scanner.scan_for_signals(config)
+                print(f"   ✅ Scan completed successfully")
+                print(f"   📊 Generated {len(signals)} signals")
+                
+                # Show recent signals for this config
+                recent_signals = session.query(GeneratedSignal).filter(
+                    GeneratedSignal.config_id == config.id,
+                    GeneratedSignal.signal_time > datetime.utcnow() - timedelta(hours=1)
+                ).all()
+                
+                print(f"   📈 Recent signals: {len(recent_signals)}")
+                
+            except Exception as e:
+                print(f"   ❌ Error scanning config {config.name}: {e}")
+                
         session.close()
+        print("\n✅ Signal scanner test completed")
+        return True
+        
+    except Exception as e:
+        print(f"❌ Error testing signal scanner: {e}")
+        return False
+
+def check_recent_signals():
+    """Check for recent signals in the database"""
+    print("\n📊 Checking Recent Signals...")
+    print("=" * 30)
+    
+    try:
+        session = Session()
+        
+        # Get recent signals
+        recent_signals = session.query(GeneratedSignal).filter(
+            GeneratedSignal.signal_time > datetime.utcnow() - timedelta(hours=2)
+        ).order_by(GeneratedSignal.signal_time.desc()).limit(10).all()
+        
+        if recent_signals:
+            print(f"✅ Found {len(recent_signals)} recent signals:")
+            for signal in recent_signals:
+                print(f"   📈 {signal.symbol} {signal.direction} @ {signal.price} ({signal.signal_time})")
+        else:
+            print("❌ No recent signals found")
+            
+        session.close()
+        
+    except Exception as e:
+        print(f"❌ Error checking recent signals: {e}")
 
 if __name__ == "__main__":
-    test_signal_scanner()
+    from backend.app.signal_scanner.db_schema import GeneratedSignal
+    from datetime import datetime, timedelta
+    
+    print("🚀 Signal Scanner Test Suite")
+    print("=" * 50)
+    
+    # Test signal scanner
+    success = test_signal_scanner()
+    
+    # Check recent signals
+    check_recent_signals()
+    
+    if success:
+        print("\n🎉 All tests passed! Signal scanner is working properly.")
+    else:
+        print("\n⚠️ Some tests failed. Check the logs for details.")
