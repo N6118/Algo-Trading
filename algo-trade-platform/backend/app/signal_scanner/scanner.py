@@ -369,13 +369,18 @@ class SignalScanner:
             # Filter out duplicate signals
             filtered_signals = []
             for signal in signals:
+                # Access signal attributes before they get detached from session
+                symbol = signal.symbol
+                direction = signal.direction
+                price = signal.price
+                timeframe = signal.timeframe
+                
                 if not self.check_duplicate_signals(
-                    config, signal.symbol, signal.direction,
-                    signal.price, signal.timeframe
+                    config, symbol, direction, price, timeframe
                 ):
                     filtered_signals.append(signal)
                 else:
-                    logger.info(f"Skipping duplicate signal for {signal.symbol}")
+                    logger.info(f"Skipping duplicate signal for {symbol}")
             
             # Log results and send Telegram notifications
             if filtered_signals:
