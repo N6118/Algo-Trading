@@ -125,7 +125,7 @@ class CorrelationStrategy:
                 df['timestamp'] = dt.dt.tz_localize('Asia/Singapore').dt.tz_convert('America/New_York')
             else:
                 df['timestamp'] = dt.dt.tz_convert('America/New_York')
-            df = df.sort_values('timestamp')  # Sort by timestamp ascending
+            df = df.sort_values('timestamp', ascending=False)  # Sort by timestamp descending (most recent first)
             
             # Validate data
             if not self.validate_market_data(df, symbol, timeframe):
