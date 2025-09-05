@@ -365,9 +365,9 @@ class CorrelationStrategy:
             if len(primary_data) < min_data_points or len(correlated_data) < min_data_points:
                 return False, f"Insufficient data points (minimum {min_data_points} required)"
             
-            # Get latest data points
-            primary_latest = primary_data.iloc[-1]
-            correlated_latest = correlated_data.iloc[-1]
+            # Get latest data points (iloc[0] because data is ordered by created DESC)
+            primary_latest = primary_data.iloc[0]
+            correlated_latest = correlated_data.iloc[0]
             
             # Check if correlation is enabled for this config
             correlation_enabled = self.is_correlation_enabled()
@@ -437,9 +437,9 @@ class CorrelationStrategy:
             if len(primary_data) < min_data_points or len(correlated_data) < min_data_points:
                 return False, f"Insufficient data points (minimum {min_data_points} required)"
             
-            # Get latest data points
-            primary_latest = primary_data.iloc[-1]
-            correlated_latest = correlated_data.iloc[-1]
+            # Get latest data points (iloc[0] because data is ordered by created DESC)
+            primary_latest = primary_data.iloc[0]
+            correlated_latest = correlated_data.iloc[0]
             
             # Check if correlation is enabled for this config
             correlation_enabled = self.is_correlation_enabled()
@@ -517,7 +517,7 @@ class CorrelationStrategy:
                     duplicate = False
                     if check_duplicate_signals:
                         duplicate = check_duplicate_signals(
-                            config, primary_symbol.symbol, 'Long', primary_data.iloc[-1]['close'], primary_symbol.timeframe
+                            config, primary_symbol.symbol, 'Long', primary_data.iloc[0]['close'], primary_symbol.timeframe
                         )
                     else:
                         # Improved duplicate check: look for any signal in the last 30 minutes with same direction
@@ -541,7 +541,7 @@ class CorrelationStrategy:
                             symbol=primary_symbol.symbol,
                             token=primary_symbol.token,
                             direction='Long',
-                            price=primary_data.iloc[-1]['close'],
+                            price=primary_data.iloc[0]['close'],
                             timeframe=primary_symbol.timeframe,
                             status='New'
                         )
@@ -557,7 +557,7 @@ class CorrelationStrategy:
                     duplicate = False
                     if check_duplicate_signals:
                         duplicate = check_duplicate_signals(
-                            config, primary_symbol.symbol, 'Short', primary_data.iloc[-1]['close'], primary_symbol.timeframe
+                            config, primary_symbol.symbol, 'Short', primary_data.iloc[0]['close'], primary_symbol.timeframe
                         )
                     else:
                         # Improved duplicate check: look for any signal in the last 30 minutes with same direction
@@ -581,7 +581,7 @@ class CorrelationStrategy:
                             symbol=primary_symbol.symbol,
                             token=primary_symbol.token,
                             direction='Short',
-                            price=primary_data.iloc[-1]['close'],
+                            price=primary_data.iloc[0]['close'],
                             timeframe=primary_symbol.timeframe,
                             status='New'
                         )
