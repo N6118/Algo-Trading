@@ -270,7 +270,7 @@ class CorrelationStrategy:
                 else:
                     raise ValueError(f"Unsupported correlation method: {method}")
                 
-                return correlation.iloc[-1]  # Return the latest correlation
+                return correlation.iloc[0]  # Return the latest correlation
             
             else:
                 # Calculate static correlation
@@ -399,10 +399,10 @@ class CorrelationStrategy:
             correlated_price = correlated_latest['close']
             
             # Get Swing High/Low levels from database
-            primary_sh = primary_latest['sh_price'] if not pd.isna(primary_latest['sh_price']) else primary_data['high'].rolling(20).max().iloc[-1]
-            primary_sl = primary_latest['sl_price'] if not pd.isna(primary_latest['sl_price']) else primary_data['low'].rolling(20).min().iloc[-1]
-            correlated_sh = correlated_latest['sh_price'] if not pd.isna(correlated_latest['sh_price']) else correlated_data['high'].rolling(20).max().iloc[-1]
-            correlated_sl = correlated_latest['sl_price'] if not pd.isna(correlated_latest['sl_price']) else correlated_data['low'].rolling(20).min().iloc[-1]
+            primary_sh = primary_latest['sh_price'] if not pd.isna(primary_latest['sh_price']) else primary_data['high'].rolling(20).max().iloc[0]
+            primary_sl = primary_latest['sl_price'] if not pd.isna(primary_latest['sl_price']) else primary_data['low'].rolling(20).min().iloc[0]
+            correlated_sh = correlated_latest['sh_price'] if not pd.isna(correlated_latest['sh_price']) else correlated_data['high'].rolling(20).max().iloc[0]
+            correlated_sl = correlated_latest['sl_price'] if not pd.isna(correlated_latest['sl_price']) else correlated_data['low'].rolling(20).min().iloc[0]
             
             # Check buy conditions
             if primary_price > primary_sh and correlated_price < correlated_sl:
@@ -471,10 +471,10 @@ class CorrelationStrategy:
             correlated_price = correlated_latest['close']
             
             # Get Swing High/Low levels from database
-            primary_sh = primary_latest['sh_price'] if not pd.isna(primary_latest['sh_price']) else primary_data['high'].rolling(20).max().iloc[-1]
-            primary_sl = primary_latest['sl_price'] if not pd.isna(primary_latest['sl_price']) else primary_data['low'].rolling(20).min().iloc[-1]
-            correlated_sh = correlated_latest['sh_price'] if not pd.isna(correlated_latest['sh_price']) else correlated_data['high'].rolling(20).max().iloc[-1]
-            correlated_sl = correlated_latest['sl_price'] if not pd.isna(correlated_latest['sl_price']) else correlated_data['low'].rolling(20).min().iloc[-1]
+            primary_sh = primary_latest['sh_price'] if not pd.isna(primary_latest['sh_price']) else primary_data['high'].rolling(20).max().iloc[0]
+            primary_sl = primary_latest['sl_price'] if not pd.isna(primary_latest['sl_price']) else primary_data['low'].rolling(20).min().iloc[0]
+            correlated_sh = correlated_latest['sh_price'] if not pd.isna(correlated_latest['sh_price']) else correlated_data['high'].rolling(20).max().iloc[0]
+            correlated_sl = correlated_latest['sl_price'] if not pd.isna(correlated_latest['sl_price']) else correlated_data['low'].rolling(20).min().iloc[0]
             
             # Check sell conditions
             if primary_price < primary_sl and correlated_price > correlated_sh:
