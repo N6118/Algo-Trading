@@ -57,9 +57,11 @@ def create_simple_test_data():
         
         # Create test timestamp (next 15-minute interval)
         now = datetime.utcnow()
-        next_interval = now.replace(minute=((now.minute // 15) + 1) * 15, second=0, microsecond=0)
-        if next_interval.minute >= 60:
-            next_interval = next_interval.replace(hour=next_interval.hour + 1, minute=0)
+        next_minute = ((now.minute // 15) + 1) * 15
+        if next_minute >= 60:
+            next_interval = now.replace(hour=now.hour + 1, minute=next_minute - 60, second=0, microsecond=0)
+        else:
+            next_interval = now.replace(minute=next_minute, second=0, microsecond=0)
         
         logger.info(f"Creating test data for: {next_interval}")
         
