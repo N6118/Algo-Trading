@@ -30,7 +30,8 @@ def manual_trigger_scanner():
         scanner = SignalScanner()
         
         # Get the config
-        config = scanner.SignalConfig.query.filter_by(id=1).first()
+        from db_schema import SignalConfig
+        config = SignalConfig.query.filter_by(id=1).first()
         if not config:
             logger.error("No signal config found with ID 1")
             return False
@@ -67,10 +68,10 @@ def check_generated_signals():
         
         # Check recent signals
         query = text("""
-            SELECT id, symbol, signal_time, direction, price, status, created_at
+            SELECT id, symbol, signal_time, direction, price, status
             FROM generated_signals 
-            WHERE created_at > NOW() - INTERVAL '10 minutes'
-            ORDER BY created_at DESC
+            WHERE signal_time > NOW() - INTERVAL '10 minutes'
+            ORDER BY signal_time DESC
         """)
         
         result = session.execute(query)
