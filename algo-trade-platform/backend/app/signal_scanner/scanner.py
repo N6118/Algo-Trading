@@ -397,7 +397,7 @@ class SignalScanner:
                             message += f"• {rule.condition}\n"
                         
                         try:
-                            notifier.send_message(message)
+                            notifier.send_message(message, parse_mode="Markdown")
                             logger.info(f"Telegram notification sent for signal {signal.id}")
                         except Exception as e:
                             logger.error(f"Failed to send Telegram notification: {e}")
