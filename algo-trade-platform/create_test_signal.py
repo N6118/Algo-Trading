@@ -64,9 +64,11 @@ def create_test_data_that_meets_conditions():
         # Create test timestamp (next 15-minute interval)
         current_time = datetime.utcnow()
         # Round up to next 15-minute interval
-        next_interval = current_time.replace(minute=(current_time.minute // 15 + 1) * 15, second=0, microsecond=0)
-        if next_interval.minute >= 60:
-            next_interval = next_interval.replace(hour=next_interval.hour + 1, minute=0)
+        next_minute = ((current_time.minute // 15) + 1) * 15
+        if next_minute >= 60:
+            next_interval = current_time.replace(hour=current_time.hour + 1, minute=next_minute - 60, second=0, microsecond=0)
+        else:
+            next_interval = current_time.replace(minute=next_minute, second=0, microsecond=0)
         
         logger.info(f"📅 Creating test data for: {next_interval}")
         
