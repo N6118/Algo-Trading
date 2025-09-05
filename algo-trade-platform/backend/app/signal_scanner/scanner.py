@@ -384,27 +384,35 @@ class SignalScanner:
                 # Send Telegram notifications for each signal
                 notifier = get_telegram_notifier()
                 if notifier:
-                    for signal in filtered_signals:
-                        message = f"🚨 **SIGNAL GENERATED** 🚨\n\n"
-                        message += f"**Symbol:** {signal.symbol}\n"
-                        message += f"**Direction:** {signal.direction}\n"
-                        message += f"**Price:** ${signal.price:.2f}\n"
-                        message += f"**Timeframe:** {signal.timeframe}\n"
-                        message += f"**Strategy:** {config.name}\n"
-                        message += f"**Generated:** {signal.signal_time.strftime('%Y-%m-%d %H:%M:%S')}\n\n"
-                        message += f"**Entry Rules:**\n"
-                        # Get entry rules from config instead of signal to avoid session issues
-                        for rule in config.entry_rules:
-                            if rule.rule_type == 'Correlation':
-                                message += f"• {rule.rule_type}: {rule.correlation_threshold}\n"
-                            else:
-                                message += f"• {rule.rule_type}: {rule.condition}\n"
-                        
-                        try:
-                            notifier.send_message(message, parse_mode="Markdown")
-                            logger.info(f"Telegram notification sent for signal {signal.id}")
-                        except Exception as e:
-                            logger.error(f"Failed to send Telegram notification: {e}")
+                    # Refresh signals in a new session to avoid detached instance issues
+                    session = self.Session()
+                    try:
+                        for signal in filtered_signals:
+                            # Refresh the signal object to ensure it's bound to the session
+                            session.refresh(signal)
+                            
+                            message = f"🚨 **SIGNAL GENERATED** 🚨\n\n"
+                            message += f"**Symbol:** {signal.symbol}\n"
+                            message += f"**Direction:** {signal.direction}\n"
+                            message += f"**Price:** ${signal.price:.2f}\n"
+                            message += f"**Timeframe:** {signal.timeframe}\n"
+                            message += f"**Strategy:** {config.name}\n"
+                            message += f"**Generated:** {signal.signal_time.strftime('%Y-%m-%d %H:%M:%S')}\n\n"
+                            message += f"**Entry Rules:**\n"
+                            # Get entry rules from config instead of signal to avoid session issues
+                            for rule in config.entry_rules:
+                                if rule.rule_type == 'Correlation':
+                                    message += f"• {rule.rule_type}: {rule.correlation_threshold}\n"
+                                else:
+                                    message += f"• {rule.rule_type}: {rule.condition}\n"
+                            
+                            try:
+                                notifier.send_message(message, parse_mode="Markdown")
+                                logger.info(f"Telegram notification sent for signal {signal.id}")
+                            except Exception as e:
+                                logger.error(f"Failed to send Telegram notification: {e}")
+                    finally:
+                        session.close()
                 else:
                     logger.warning("Telegram notifier not available")
             else:
