@@ -334,7 +334,7 @@ class CorrelationStrategy:
                     if hasattr(rule, 'correlation_enabled') and not rule.correlation_enabled:
                         return False
                     # Check if threshold is set to disable correlation
-                    if rule.correlation_threshold == -1 or rule.correlation_threshold == 0:
+                    if rule.correlation_threshold == -1 or rule.correlation_threshold == 0.0:
                         return False
                     return True
             

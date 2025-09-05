@@ -37,7 +37,7 @@ def disable_correlation():
         update_query = text("""
             UPDATE signal_entry_rules 
             SET correlation_enabled = false,
-                correlation_threshold = -1
+                correlation_threshold = 0.0
             WHERE rule_type = 'Correlation' 
             AND config_id = 1
         """)
