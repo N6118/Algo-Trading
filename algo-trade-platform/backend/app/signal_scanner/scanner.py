@@ -384,33 +384,42 @@ class SignalScanner:
                 # Send Telegram notifications for each signal
                 notifier = get_telegram_notifier()
                 if notifier:
-                    # Refresh signals in a new session to avoid detached instance issues
+                    # Query signal data directly to avoid session issues
                     session = self.Session()
                     try:
                         for signal in filtered_signals:
-                            # Refresh the signal object to ensure it's bound to the session
-                            session.refresh(signal)
+                            # Query the signal data directly from database
+                            query = text("""
+                                SELECT symbol, direction, price, timeframe, signal_time
+                                FROM generated_signals 
+                                WHERE id = :signal_id
+                            """)
+                            result = session.execute(query, {"signal_id": signal.id})
+                            signal_data = result.fetchone()
                             
-                            message = f"🚨 **SIGNAL GENERATED** 🚨\n\n"
-                            message += f"**Symbol:** {signal.symbol}\n"
-                            message += f"**Direction:** {signal.direction}\n"
-                            message += f"**Price:** ${signal.price:.2f}\n"
-                            message += f"**Timeframe:** {signal.timeframe}\n"
-                            message += f"**Strategy:** {config.name}\n"
-                            message += f"**Generated:** {signal.signal_time.strftime('%Y-%m-%d %H:%M:%S')}\n\n"
-                            message += f"**Entry Rules:**\n"
-                            # Get entry rules from config instead of signal to avoid session issues
-                            for rule in config.entry_rules:
-                                if rule.rule_type == 'Correlation':
-                                    message += f"• {rule.rule_type}: {rule.correlation_threshold}\n"
-                                else:
-                                    message += f"• {rule.rule_type}: {rule.condition}\n"
-                            
-                            try:
-                                notifier.send_message(message, parse_mode="Markdown")
-                                logger.info(f"Telegram notification sent for signal {signal.id}")
-                            except Exception as e:
-                                logger.error(f"Failed to send Telegram notification: {e}")
+                            if signal_data:
+                                message = f"🚨 **SIGNAL GENERATED** 🚨\n\n"
+                                message += f"**Symbol:** {signal_data[0]}\n"
+                                message += f"**Direction:** {signal_data[1]}\n"
+                                message += f"**Price:** ${signal_data[2]:.2f}\n"
+                                message += f"**Timeframe:** {signal_data[3]}\n"
+                                message += f"**Strategy:** {config.name}\n"
+                                message += f"**Generated:** {signal_data[4].strftime('%Y-%m-%d %H:%M:%S')}\n\n"
+                                message += f"**Entry Rules:**\n"
+                                # Get entry rules from config instead of signal to avoid session issues
+                                for rule in config.entry_rules:
+                                    if rule.rule_type == 'Correlation':
+                                        message += f"• {rule.rule_type}: {rule.correlation_threshold}\n"
+                                    else:
+                                        message += f"• {rule.rule_type}: {rule.condition}\n"
+                                
+                                try:
+                                    notifier.send_message(message, parse_mode="Markdown")
+                                    logger.info(f"Telegram notification sent for signal {signal.id}")
+                                except Exception as e:
+                                    logger.error(f"Failed to send Telegram notification: {e}")
+                            else:
+                                logger.error(f"Could not find signal data for ID {signal.id}")
                     finally:
                         session.close()
                 else:
