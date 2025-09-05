@@ -319,6 +319,32 @@ class CorrelationStrategy:
             logger.error(f"Error calculating correlation matrix: {str(e)}")
             return None
     
+    def is_correlation_enabled(self):
+        """
+        Check if correlation is enabled for this configuration.
+        
+        Returns:
+            bool: Whether correlation checking is enabled
+        """
+        try:
+            # Check if there's a correlation rule with correlation_enabled flag
+            for rule in self.config.entry_rules:
+                if rule.rule_type == 'Correlation':
+                    # Check if correlation is disabled (threshold set to -1 or 0)
+                    if hasattr(rule, 'correlation_enabled') and not rule.correlation_enabled:
+                        return False
+                    # Check if threshold is set to disable correlation
+                    if rule.correlation_threshold == -1 or rule.correlation_threshold == 0:
+                        return False
+                    return True
+            
+            # If no correlation rule found, correlation is disabled by default
+            return False
+            
+        except Exception as e:
+            logger.error(f"Error checking correlation enabled status: {str(e)}")
+            return False
+    
     def check_buy_conditions(self, primary_data, correlated_data):
         """
         Check conditions for generating a buy signal.
@@ -343,24 +369,30 @@ class CorrelationStrategy:
             primary_latest = primary_data.iloc[-1]
             correlated_latest = correlated_data.iloc[-1]
             
-            # Calculate correlation
-            correlation = self.calculate_correlation(primary_data, correlated_data)
-            if correlation is None:
-                return False, "Failed to calculate correlation"
+            # Check if correlation is enabled for this config
+            correlation_enabled = self.is_correlation_enabled()
             
-            # Debug: log the correlation value
-            logger.info(f"[DEBUG] Correlation value: {correlation}")
-            
-            # Restore correlation threshold check
-            correlation_threshold = None
-            for rule in self.config.entry_rules:
-                if rule.rule_type == 'Correlation' and rule.correlation_threshold:
-                    correlation_threshold = rule.correlation_threshold
-                    break
-            if correlation_threshold is None:
-                correlation_threshold = 0.7  # Default threshold
-            if correlation < correlation_threshold:
-                return False, f"Correlation {correlation:.2f} below threshold {correlation_threshold}"
+            if correlation_enabled:
+                # Calculate correlation
+                correlation = self.calculate_correlation(primary_data, correlated_data)
+                if correlation is None:
+                    return False, "Failed to calculate correlation"
+                
+                # Debug: log the correlation value
+                logger.info(f"[DEBUG] Correlation value: {correlation}")
+                
+                # Check correlation threshold
+                correlation_threshold = None
+                for rule in self.config.entry_rules:
+                    if rule.rule_type == 'Correlation' and rule.correlation_threshold:
+                        correlation_threshold = rule.correlation_threshold
+                        break
+                if correlation_threshold is None:
+                    correlation_threshold = 0.7  # Default threshold
+                if correlation < correlation_threshold:
+                    return False, f"Correlation {correlation:.2f} below threshold {correlation_threshold}"
+            else:
+                logger.info("[DEBUG] Correlation check disabled - using price conditions only")
             
             # Get price conditions
             primary_price = primary_latest['close']
@@ -374,7 +406,10 @@ class CorrelationStrategy:
             
             # Check buy conditions
             if primary_price > primary_sh and correlated_price < correlated_sl:
-                return True, f"Buy signal: Primary price {primary_price:.2f} > SH {primary_sh:.2f}, Correlated price {correlated_price:.2f} < SL {correlated_sl:.2f} (correlation: {correlation:.2f})"
+                if correlation_enabled:
+                    return True, f"Buy signal: Primary price {primary_price:.2f} > SH {primary_sh:.2f}, Correlated price {correlated_price:.2f} < SL {correlated_sl:.2f} (correlation: {correlation:.2f})"
+                else:
+                    return True, f"Buy signal: Primary price {primary_price:.2f} > SH {primary_sh:.2f}, Correlated price {correlated_price:.2f} < SL {correlated_sl:.2f} (correlation disabled)"
             
             return False, "Buy conditions not met"
         
@@ -406,24 +441,30 @@ class CorrelationStrategy:
             primary_latest = primary_data.iloc[-1]
             correlated_latest = correlated_data.iloc[-1]
             
-            # Calculate correlation
-            correlation = self.calculate_correlation(primary_data, correlated_data)
-            if correlation is None:
-                return False, "Failed to calculate correlation"
+            # Check if correlation is enabled for this config
+            correlation_enabled = self.is_correlation_enabled()
             
-            # Debug: log the correlation value
-            logger.info(f"[DEBUG] Correlation value: {correlation}")
-            
-            # Restore correlation threshold check
-            correlation_threshold = None
-            for rule in self.config.entry_rules:
-                if rule.rule_type == 'Correlation' and rule.correlation_threshold:
-                    correlation_threshold = rule.correlation_threshold
-                    break
-            if correlation_threshold is None:
-                correlation_threshold = 0.7  # Default threshold
-            if correlation < correlation_threshold:
-                return False, f"Correlation {correlation:.2f} below threshold {correlation_threshold}"
+            if correlation_enabled:
+                # Calculate correlation
+                correlation = self.calculate_correlation(primary_data, correlated_data)
+                if correlation is None:
+                    return False, "Failed to calculate correlation"
+                
+                # Debug: log the correlation value
+                logger.info(f"[DEBUG] Correlation value: {correlation}")
+                
+                # Check correlation threshold
+                correlation_threshold = None
+                for rule in self.config.entry_rules:
+                    if rule.rule_type == 'Correlation' and rule.correlation_threshold:
+                        correlation_threshold = rule.correlation_threshold
+                        break
+                if correlation_threshold is None:
+                    correlation_threshold = 0.7  # Default threshold
+                if correlation < correlation_threshold:
+                    return False, f"Correlation {correlation:.2f} below threshold {correlation_threshold}"
+            else:
+                logger.info("[DEBUG] Correlation check disabled - using price conditions only")
             
             # Check price conditions
             primary_price = primary_latest['close']
@@ -437,7 +478,10 @@ class CorrelationStrategy:
             
             # Check sell conditions
             if primary_price < primary_sl and correlated_price > correlated_sh:
-                return True, f"Sell signal: Primary price {primary_price:.2f} < SL {primary_sl:.2f}, Correlated price {correlated_price:.2f} > SH {correlated_sh:.2f} (correlation: {correlation:.2f})"
+                if correlation_enabled:
+                    return True, f"Sell signal: Primary price {primary_price:.2f} < SL {primary_sl:.2f}, Correlated price {correlated_price:.2f} > SH {correlated_sh:.2f} (correlation: {correlation:.2f})"
+                else:
+                    return True, f"Sell signal: Primary price {primary_price:.2f} < SL {primary_sl:.2f}, Correlated price {correlated_price:.2f} > SH {correlated_sh:.2f} (correlation disabled)"
             
             return False, "Sell conditions not met"
         

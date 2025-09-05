@@ -519,7 +519,7 @@ IBKR TWS/Gateway → streamdata.py → stock_ticks (TimescaleDB)
 - [x] **Service Status**: systemd service health
 - [x] **Memory Usage**: Process resource monitoring
 
-## 13. Security & Compliance
+## 9. Security & Compliance
 
 ### Data Security
 - [x] **Encrypted Connections**: SSL/TLS for database and API

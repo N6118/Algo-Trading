@@ -118,6 +118,7 @@ class SignalEntryRule(Base):
     correlated_symbol = Column(String(20))  # Only used for correlation rules
     correlation_lookback = Column(Integer, default=10)  # Periods to look back for correlation
     correlation_threshold = Column(Float, default=0.7)  # Threshold for correlation
+    correlation_enabled = Column(Boolean, default=True)  # Whether to use correlation in signal generation
     
     # Relationships
     config = relationship("SignalConfig", back_populates="entry_rules")
