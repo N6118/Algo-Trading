@@ -391,10 +391,14 @@ class SignalScanner:
                         message += f"**Price:** ${signal.price:.2f}\n"
                         message += f"**Timeframe:** {signal.timeframe}\n"
                         message += f"**Strategy:** {config.name}\n"
-                        message += f"**Generated:** {signal.generated_at.strftime('%Y-%m-%d %H:%M:%S')}\n\n"
+                        message += f"**Generated:** {signal.signal_time.strftime('%Y-%m-%d %H:%M:%S')}\n\n"
                         message += f"**Entry Rules:**\n"
-                        for rule in signal.entry_rules:
-                            message += f"• {rule.condition}\n"
+                        # Get entry rules from config instead of signal to avoid session issues
+                        for rule in config.entry_rules:
+                            if rule.rule_type == 'Correlation':
+                                message += f"• {rule.rule_type}: {rule.correlation_threshold}\n"
+                            else:
+                                message += f"• {rule.rule_type}: {rule.condition}\n"
                         
                         try:
                             notifier.send_message(message, parse_mode="Markdown")
